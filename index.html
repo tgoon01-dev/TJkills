@@ -188,6 +188,20 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 .ar-exp{background:rgba(255,255,255,.7);border-radius:10px;padding:10px 14px;font-size:13px;color:#374151;line-height:1.7;border-left:3px solid #e85d00;}
 .ar-exp b{color:#1a3560;}
 
+/* ── 히스토리 선택 / 역량 비교 ── */
+.hist-sel-group{margin-bottom:10px;}
+.hist-sel-label{display:block;font-size:12px;font-weight:600;color:#6b7fa3;margin-bottom:4px;}
+.hist-sel{padding:9px 12px;border:1px solid #d1d9e6;border-radius:8px;font-size:13px;color:#1a2c4e;outline:none;background:#fff;width:100%;transition:.2s;}
+.hist-sel:focus{border-color:#e85d00;box-shadow:0 0 0 3px rgba(232,93,0,.1);}
+.btn-hist-reset{background:#f0f4f8;border:1px solid #d1d9e6;color:#6b7fa3;padding:9px 18px;border-radius:8px;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap;}
+.btn-hist-reset:hover{background:#e2e8f0;color:#1a2c4e;}
+.compare-slot{background:#f8fafc;border-radius:12px;padding:16px 18px;}
+.compare-slot-label{font-size:13px;font-weight:700;color:#1a3560;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+@media(max-width:600px){.compare-grid{grid-template-columns:1fr;}}
+.btn-compare{background:linear-gradient(135deg,#1a3560,#2a5090);color:#fff;border:none;padding:12px 36px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:block;margin:0 auto;transition:.2s;}
+.btn-compare:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,53,96,.3);}
+
 /* ── 완료 팝업 ── */
 .complete-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000;align-items:center;justify-content:center;padding:20px;}
 .complete-modal-box{background:#fff;border-radius:24px;padding:40px 36px;max-width:420px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.25);animation:popIn .25s ease;}
@@ -337,6 +351,28 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
       <div class="results-title">사이버보안 직무역량 진단 결과</div>
       <div class="results-date" id="res-date"></div>
     </div>
+    <!-- 직무 진단 히스토리 선택 -->
+    <div id="hist-selector-card" class="card" style="display:none;margin-bottom:20px;">
+      <h4 style="font-size:15px;font-weight:700;color:#1a2c4e;margin-bottom:14px;">📋 직무 진단 히스토리</h4>
+      <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;">
+        <div style="flex:1;min-width:160px;">
+          <div class="hist-sel-group">
+            <label class="hist-sel-label">직무 선택</label>
+            <select id="hist-job-sel" class="hist-sel" onchange="onHistoryJobChange()">
+              <option value="">-- 직무 선택 --</option>
+            </select>
+          </div>
+        </div>
+        <div id="hist-date-wrap" style="flex:1;min-width:180px;display:none;">
+          <div class="hist-sel-group">
+            <label class="hist-sel-label">응답일 선택</label>
+            <select id="hist-date-sel" class="hist-sel" onchange="onHistoryDateChange()"></select>
+          </div>
+        </div>
+        <button class="btn-hist-reset" onclick="resetToCurrentResult()">현재 진단 보기</button>
+      </div>
+    </div>
+
     <div class="chart-card">
       <h3>과업별 역량 방사형 그래프</h3>
       <p>파란색: 중요도 수준 &nbsp;|&nbsp; 주황색: 진단 역량 수준 (1~5점, 소수점 1자리)</p>
@@ -346,6 +382,46 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
         <div class="legend-item"><div class="legend-dot" style="background:#e85d00"></div>역량 수준 (진단결과)</div>
       </div>
     </div>
+
+    <!-- 역량 비교 -->
+    <div id="comparison-card" class="chart-card" style="display:none;">
+      <h3>⚡ 역량 비교</h3>
+      <p style="font-size:13px;color:#6b7fa3;margin-bottom:20px;">두 진단 결과를 선택하여 역량 변화를 비교합니다.</p>
+      <div class="compare-grid">
+        <div class="compare-slot">
+          <div class="compare-slot-label"><span style="background:#2563eb;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">A</span> 기준</div>
+          <div class="hist-sel-group">
+            <label class="hist-sel-label">직무</label>
+            <select id="cmp-a-job" class="hist-sel" onchange="onCompareJobChange('a')"><option value="">-- 선택 --</option></select>
+          </div>
+          <div id="cmp-a-date-wrap" style="display:none;">
+            <div class="hist-sel-group">
+              <label class="hist-sel-label">응답일</label>
+              <select id="cmp-a-date" class="hist-sel"></select>
+            </div>
+          </div>
+        </div>
+        <div class="compare-slot">
+          <div class="compare-slot-label"><span style="background:#e85d00;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">B</span> 비교</div>
+          <div class="hist-sel-group">
+            <label class="hist-sel-label">직무</label>
+            <select id="cmp-b-job" class="hist-sel" onchange="onCompareJobChange('b')"><option value="">-- 선택 --</option></select>
+          </div>
+          <div id="cmp-b-date-wrap" style="display:none;">
+            <div class="hist-sel-group">
+              <label class="hist-sel-label">응답일</label>
+              <select id="cmp-b-date" class="hist-sel"></select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-compare" onclick="renderComparisonChart()">비교하기 →</button>
+      <div id="comparison-result" style="display:none;margin-top:28px;">
+        <div class="chart-wrap"><canvas id="comparison-chart"></canvas></div>
+        <div class="chart-legend" id="comparison-legend" style="margin-top:16px;"></div>
+      </div>
+    </div>
+
     <div class="card">
       <h3 style="font-size:17px;font-weight:700;color:#1a2c4e;margin-bottom:16px;">과업별 상세 결과</h3>
       <div style="overflow-x:auto">
@@ -392,7 +468,8 @@ async function saveDiagnosisResult() {
       results:     state.results,
       totalQ:      state.testQuestions.length,
       answered:    Object.keys(state.answers).length,
-      correct
+      correct,
+      taskLabels:  TASK_STRUCTURE.flatMap(c => c.tasks).map(t => ({ id: t.id, name: t.name }))
     }
   });
   if (error) console.error('Supabase 저장 오류:', error.message);
@@ -798,9 +875,11 @@ let state = {
   answers: {},
   results: {},
   currentQIdx: 0,
-  feedback: {}
+  feedback: {},
+  historyRecords: []
 };
 let radarChart = null;
+let compChart = null;
 
 // ══════════════════════════════════════════════════
 //  NAVIGATION
@@ -1168,6 +1247,9 @@ function renderResults() {
       <h4 style="color:#b91c1c">📈 개발 필요 과업</h4>
       <ul>${devAreas.length ? devAreas.map(t => `<li><span class="tag-dev">${t.id}</span>${t.name} <span style="color:#94a3b8;font-size:12px">(${t.diff.toFixed(1)}점 부족)</span></li>`).join('') : '<li style="color:#94a3b8">해당 없음</li>'}</ul>
     </div>`;
+
+  // Load history after rendering current result
+  loadUserHistory();
 }
 
 // ══════════════════════════════════════════════════
@@ -1338,6 +1420,157 @@ function restartDiagnosis() {
   state = { userInfo:{}, importance:{}, testQuestions:[], answers:{}, results:{}, currentQIdx:0, feedback:{} };
   if (radarChart) { radarChart.destroy(); radarChart = null; }
   showPage('page-home');
+}
+
+// ══════════════════════════════════════════════════
+//  HISTORY & COMPARISON
+// ══════════════════════════════════════════════════
+async function loadUserHistory() {
+  const email = state.userInfo.email;
+  if (!email) return;
+  const { data, error } = await sbClient
+    .from('SDSkills')
+    .select('id, name, dept, job, result_data, saved_at')
+    .eq('email', email)
+    .order('saved_at', { ascending: false });
+  if (error || !data?.length) return;
+  state.historyRecords = data;
+
+  const jobs = [...new Set(data.map(r => r.job))];
+
+  // Populate hist-selector
+  const histJobSel = document.getElementById('hist-job-sel');
+  histJobSel.innerHTML = '<option value="">-- 직무 선택 --</option>';
+  jobs.forEach(j => { histJobSel.innerHTML += `<option value="${j}">${j}</option>`; });
+  document.getElementById('hist-selector-card').style.display = 'block';
+
+  // Populate comparison dropdowns
+  ['cmp-a-job','cmp-b-job'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">-- 선택 --</option>';
+    jobs.forEach(j => { sel.innerHTML += `<option value="${j}">${j}</option>`; });
+  });
+  document.getElementById('comparison-card').style.display = 'block';
+}
+
+function onHistoryJobChange() {
+  const job = document.getElementById('hist-job-sel').value;
+  const wrap = document.getElementById('hist-date-wrap');
+  const dateSel = document.getElementById('hist-date-sel');
+  if (!job) { wrap.style.display = 'none'; return; }
+
+  const records = state.historyRecords.filter(r => r.job === job);
+  dateSel.innerHTML = '';
+  records.forEach(r => {
+    const d = new Date(r.saved_at);
+    const label = d.toLocaleDateString('ko-KR') + ' ' + d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+    dateSel.innerHTML += `<option value="${r.id}">${label}</option>`;
+  });
+  wrap.style.display = records.length > 1 ? 'block' : 'none';
+  if (records.length > 0) updateRadarChartWithRecord(records[0]);
+}
+
+function onHistoryDateChange() {
+  const val = document.getElementById('hist-date-sel').value;
+  const record = state.historyRecords.find(r => r.id === parseInt(val));
+  if (record) updateRadarChartWithRecord(record);
+}
+
+function updateRadarChartWithRecord(record) {
+  const r = record.result_data;
+  const taskLabels = r.taskLabels || TASK_STRUCTURE.flatMap(c => c.tasks).map(t => ({ id: t.id, name: t.name }));
+  const impData   = taskLabels.map(t => r.results[t.id]?.impAvg    ?? 0);
+  const scoreData = taskLabels.map(t => r.results[t.id]?.scoreLevel ?? 0);
+  if (radarChart) {
+    radarChart.data.labels = taskLabels.map(t => [t.id, t.name]);
+    radarChart.data.datasets[0].data = impData;
+    radarChart.data.datasets[1].data = scoreData;
+    radarChart.update();
+  }
+  const d = new Date(record.saved_at);
+  const dateStr = d.toLocaleDateString('ko-KR') + ' ' + d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+  document.getElementById('res-date').textContent = `진단일: ${dateStr} · 직무: ${record.job}`;
+}
+
+function resetToCurrentResult() {
+  document.getElementById('hist-job-sel').value = '';
+  document.getElementById('hist-date-wrap').style.display = 'none';
+  const allTasks = TASK_STRUCTURE.flatMap(c => c.tasks);
+  const impData   = allTasks.map(t => state.results[t.id]?.impAvg    ?? 0);
+  const scoreData = allTasks.map(t => state.results[t.id]?.scoreLevel ?? 0);
+  if (radarChart) {
+    radarChart.data.labels = allTasks.map(t => [t.id, t.name]);
+    radarChart.data.datasets[0].data = impData;
+    radarChart.data.datasets[1].data = scoreData;
+    radarChart.update();
+  }
+  const u = state.userInfo;
+  document.getElementById('res-date').textContent = `진단일: ${new Date().toLocaleDateString('ko-KR')} · 직무: ${u.job}`;
+}
+
+function onCompareJobChange(slot) {
+  const jobSel  = document.getElementById(`cmp-${slot}-job`);
+  const dateWrap = document.getElementById(`cmp-${slot}-date-wrap`);
+  const dateSel  = document.getElementById(`cmp-${slot}-date`);
+  const job = jobSel.value;
+  if (!job) { dateWrap.style.display = 'none'; return; }
+  const records = state.historyRecords.filter(r => r.job === job);
+  dateSel.innerHTML = '';
+  records.forEach(r => {
+    const d = new Date(r.saved_at);
+    const label = d.toLocaleDateString('ko-KR') + ' ' + d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+    dateSel.innerHTML += `<option value="${r.id}">${label}</option>`;
+  });
+  dateWrap.style.display = records.length > 0 ? 'block' : 'none';
+}
+
+function renderComparisonChart() {
+  const aJob = document.getElementById('cmp-a-job').value;
+  const bJob = document.getElementById('cmp-b-job').value;
+  if (!aJob || !bJob) { alert('A와 B 직무를 모두 선택해 주세요.'); return; }
+
+  const aId = document.getElementById('cmp-a-date').value;
+  const bId = document.getElementById('cmp-b-date').value;
+  const aRecord = aId ? state.historyRecords.find(r => r.id === parseInt(aId)) : state.historyRecords.find(r => r.job === aJob);
+  const bRecord = bId ? state.historyRecords.find(r => r.id === parseInt(bId)) : state.historyRecords.find(r => r.job === bJob);
+  if (!aRecord || !bRecord) { alert('선택한 진단 기록을 찾을 수 없습니다.'); return; }
+
+  const aLabels = aRecord.result_data.taskLabels || TASK_STRUCTURE.flatMap(c => c.tasks).map(t => ({ id: t.id, name: t.name }));
+  const bLabels = bRecord.result_data.taskLabels || TASK_STRUCTURE.flatMap(c => c.tasks).map(t => ({ id: t.id, name: t.name }));
+  const allIds = [...new Set([...aLabels.map(t => t.id), ...bLabels.map(t => t.id)])];
+  const nameMap = {};
+  [...aLabels, ...bLabels].forEach(t => { nameMap[t.id] = t.name; });
+  const unified = allIds.map(id => ({ id, name: nameMap[id] }));
+
+  const aScores = unified.map(t => aRecord.result_data.results[t.id]?.scoreLevel ?? 0);
+  const bScores = unified.map(t => bRecord.result_data.results[t.id]?.scoreLevel ?? 0);
+  const aDate = new Date(aRecord.saved_at).toLocaleDateString('ko-KR');
+  const bDate = new Date(bRecord.saved_at).toLocaleDateString('ko-KR');
+
+  document.getElementById('comparison-result').style.display = 'block';
+  if (compChart) compChart.destroy();
+  compChart = new Chart(document.getElementById('comparison-chart').getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels: unified.map(t => [t.id, t.name]),
+      datasets: [
+        { label: `A: ${aRecord.job} (${aDate})`, data: aScores, backgroundColor: 'rgba(37,99,235,0.15)', borderColor: '#2563eb', borderWidth: 2.5, pointBackgroundColor: '#2563eb', pointRadius: 4 },
+        { label: `B: ${bRecord.job} (${bDate})`, data: bScores, backgroundColor: 'rgba(232,93,0,0.15)', borderColor: '#e85d00', borderWidth: 2.5, pointBackgroundColor: '#e85d00', pointRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { r: { min:0, max:5, ticks:{ stepSize:1, font:{size:11} }, pointLabels:{ font:{size:11, weight:'bold'} } } },
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{
+        title: items => { const t = unified[items[0].dataIndex]; return `${t.id} · ${t.name}`; },
+        label: ctx => `${ctx.dataset.label}: ${ctx.raw}점`
+      }}}
+    }
+  });
+  document.getElementById('comparison-legend').innerHTML = `
+    <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div>A: ${aRecord.job} (${aDate})</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e85d00"></div>B: ${bRecord.job} (${bDate})</div>`;
+  document.getElementById('comparison-result').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 // ── Init step bars ──
