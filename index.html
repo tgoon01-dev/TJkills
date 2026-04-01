@@ -1501,6 +1501,96 @@ skills: [
 qb: {}
 } // end CERT
 
+, // ── 모의해킹 ──────────────────────────────────────
+'모의해킹': {
+taskStructure: [
+  {cat:'A', catName:'모의해킹', tasks:[
+    {id:'A-1', name:'System/Network 모의해킹'},
+    {id:'A-2', name:'Kernel 이해'},
+    {id:'A-3', name:'WEB/Mobile 모의해킹'},
+    {id:'A-4', name:'IoT 모의해킹'},
+    {id:'A-5', name:'Cloud 모의해킹'},
+    {id:'A-6', name:'Scenario 모의해킹'}
+  ]},
+  {cat:'B', catName:'취약점 점검', tasks:[
+    {id:'B-1', name:'인프라 점검'},
+    {id:'B-2', name:'소스코드 점검'}
+  ]},
+  {cat:'C', catName:'모의해킹 데이터 분석', tasks:[
+    {id:'C-1', name:'악성코드 분석'},
+    {id:'C-2', name:'패킷 분석'},
+    {id:'C-3', name:'데이터 수집 및 해석'}
+  ]},
+  {cat:'D', catName:'모의해킹 품질 관리', tasks:[
+    {id:'D-1', name:'정보보안 기술 연구'},
+    {id:'D-2', name:'가이드라인 제/개정'},
+    {id:'D-3', name:'결과 산출물 작성'}
+  ]}
+],
+skills: [
+  {id:'A1-1',taskId:'A-1',text:'운영체제(윈도우/리눅스 등) 명령어를 상세히 이해한다.'},
+  {id:'A1-2',taskId:'A-1',text:'메모리 구조를 분석한다.'},
+  {id:'A1-3',taskId:'A-1',text:'Port의 역할과 Well-Known Port를 이해한다.'},
+  {id:'A1-4',taskId:'A-1',text:'윈도우 레지스트리를 이해한다.'},
+  {id:'A1-5',taskId:'A-1',text:'리눅스 Configuration을 이해한다.'},
+  {id:'A1-6',taskId:'A-1',text:'프로토콜을 이해한다.'},
+  {id:'A1-7',taskId:'A-1',text:'방화벽의 동작 원리를 이해한다.'},
+  {id:'A1-8',taskId:'A-1',text:'Metasploit 도구를 사용한다.'},
+  {id:'A1-9',taskId:'A-1',text:'(SYSTEM / Network의) CVE를 확인 후 검증한다.'},
+  {id:'A1-10',taskId:'A-1',text:'모의해킹 결과에 대한 대응방안과 가이드라인을 제안한다.'},
+  {id:'A2-1',taskId:'A-2',text:'커널의 기본 역할과 기능(프로세스 관리, 메모리 관리, 공유 자원 접근 관리, 입출력 관리 등)을 이해한다.'},
+  {id:'A2-2',taskId:'A-2',text:'커널 익스플로잇에 사용되는 공격 기법(BOF, ROP, UAF 등)을 이해한다.'},
+  {id:'A2-3',taskId:'A-2',text:'커널에 적용되는 보호 및 우회 기법을 이해한다.'},
+  {id:'A3-1',taskId:'A-3',text:'애플리케이션 환경(WEB, API, Android, IOS)을 분석하고 동작 구조를 이해한다.'},
+  {id:'A3-2',taskId:'A-3',text:'(WEB / Mobile의) 서비스 구조를 분석한다.'},
+  {id:'A3-3',taskId:'A-3',text:'Mobile 취약점 진단 도구(Frida 등)를 활용하여 모의해킹을 한다.'},
+  {id:'A3-4',taskId:'A-3',text:'(WEB / Mobile의) CVE를 확인 후 검증한다.'},
+  {id:'A3-5',taskId:'A-3',text:'모의해킹 결과에 대한 대응방안과 가이드라인을 제안한다.'},
+  {id:'A4-1',taskId:'A-4',text:'다양한 벤더사별 하드웨어를 분석한다.'},
+  {id:'A4-2',taskId:'A-4',text:'IoT 환경(라즈베리파이/아두이노/Google Cloud IoT 등)을 이해하고 구축한다.'},
+  {id:'A4-3',taskId:'A-4',text:'무선 네트워크(ZigBee, BLE, Bluetooth 등) 프로토콜을 이해한다.'},
+  {id:'A4-4',taskId:'A-4',text:'IoT 환경(MQTT 및 블루투스 등)의 네트워크를 분석한다.'},
+  {id:'A4-5',taskId:'A-4',text:'펌웨어를 추출하고 분석한다.'},
+  {id:'A4-6',taskId:'A-4',text:'IoT 취약점 진단 도구를 활용하여 모의해킹한다.'},
+  {id:'A4-7',taskId:'A-4',text:'(IoT의) CVE를 확인 후 검증한다.'},
+  {id:'A4-8',taskId:'A-4',text:'모의해킹 결과에 대한 대응방안과 가이드라인을 제안한다.'},
+  {id:'A5-1',taskId:'A-5',text:'클라우드 내 IaaS Native 서비스를 이해한다.'},
+  {id:'A5-2',taskId:'A-5',text:'클라우드 내 3rd-Party 서비스를 구분한다.'},
+  {id:'A5-3',taskId:'A-5',text:'인증 및 API 진단을 점검한다.'},
+  {id:'A5-4',taskId:'A-5',text:'서버리스 S3 및 불필요 리소스를 점검한다.'},
+  {id:'A5-5',taskId:'A-5',text:'(Cloud의) CVE를 확인 후 검증한다.'},
+  {id:'A5-6',taskId:'A-5',text:'모의해킹 결과에 대한 대응방안과 가이드라인을 제안한다.'},
+  {id:'A6-1',taskId:'A-6',text:'대상 서비스에 대한 인증 및 결제 시나리오를 수립한다.'},
+  {id:'A6-2',taskId:'A-6',text:'고객이 요청하는 테마성 진단(spring4shell, log4j 등)에 대한 시나리오를 작성한다.'},
+  {id:'A6-3',taskId:'A-6',text:'GrayBox 모의해킹에 대한 시나리오를 작성한다.'},
+  {id:'B1-1',taskId:'B-1',text:'영역별 진단 스크립트를 분석한다.'},
+  {id:'B1-2',taskId:'B-1',text:'(수동점검) 고객사 인터뷰 항목을 도출한다.'},
+  {id:'B1-3',taskId:'B-1',text:'(솔루션 점검) 솔루션(EQST VM, Smart Guard, Solid Step 등)을 통해 인프라를 진단한다.'},
+  {id:'B1-4',taskId:'B-1',text:'인프라 점검 결과에 대한 대응방안과 가이드라인을 제안한다.'},
+  {id:'B2-1',taskId:'B-2',text:'솔루션(Jenkins, AppScan, Fortify 등)을 통해 소스코드 진단 및 과/오탐을 식별한다.'},
+  {id:'B2-2',taskId:'B-2',text:'언어별 소스코드 입/출력 Tracing을 수행한다.'},
+  {id:'B2-3',taskId:'B-2',text:'소스코드로 인프라를 분석한다.'},
+  {id:'B2-4',taskId:'B-2',text:'개발 프레임워크를 이해한다.'},
+  {id:'B2-5',taskId:'B-2',text:'점검 결과에 대한 대응방안과 가이드라인을 제안한다.'},
+  {id:'C1-1',taskId:'C-1',text:'악성코드를 분석한다.'},
+  {id:'C1-2',taskId:'C-1',text:'Disassemble 도구로 바이너리를 분석한다.'},
+  {id:'C2-1',taskId:'C-2',text:'계층별(네트워크, 응용프로그램 등) 패킷을 분석한다.'},
+  {id:'C3-1',taskId:'C-3',text:'모의해킹 관련 기술을 조사하여 활용한다.'},
+  {id:'C3-2',taskId:'C-3',text:'MITRE 정보를 해석한다.'},
+  {id:'C3-3',taskId:'C-3',text:'OSINT를 활용하여 관련된 정보를 검색한다.'},
+  {id:'C3-4',taskId:'C-3',text:'ICT Infra에 대한 환경을 이해한다.'},
+  {id:'C3-5',taskId:'C-3',text:'영역간 취약점을 연계한 후 분석한다.'},
+  {id:'D1-1',taskId:'D-1',text:'신기술(Zero day 등)을 상시 연구한다.'},
+  {id:'D1-2',taskId:'D-1',text:'유명 CVE에 대한 PoC 환경을 구축하고 검증한다.'},
+  {id:'D1-3',taskId:'D-1',text:'대내외 CTF 문제를 해결한다.'},
+  {id:'D1-4',taskId:'D-1',text:'Pentest 및 자동화 도구를 개발한다.'},
+  {id:'D1-5',taskId:'D-1',text:'타인의 Pentest 도구를 분석하고 활용한다.'},
+  {id:'D2-1',taskId:'D-2',text:'보안 및 진단 가이드라인을 제/개정한다.'},
+  {id:'D3-1',taskId:'D-3',text:'모의해킹 결과 산출물을 작성한다.'}
+],
+qb: {}
+} // end 모의해킹
+
 }; // end JOB_DATA
 
 // ══════════════════════════════════════════════════
