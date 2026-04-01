@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SK쉴더스 사이버보안 직무역량 진단</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0f4f8;color:#1a2c4e;min-height:100vh;}
@@ -175,6 +176,18 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 .ar-exp{background:rgba(255,255,255,.7);border-radius:10px;padding:10px 14px;font-size:13px;color:#374151;line-height:1.7;border-left:3px solid #e85d00;}
 .ar-exp b{color:#1a3560;}
 
+/* ── 히스토리 버튼 ── */
+.btn-history{background:#fff;border:1px solid #d1d9e6;border-radius:20px;padding:5px 14px;font-size:12px;color:#6b7fa3;cursor:pointer;transition:.15s;}
+.btn-history:hover{background:#f0f4f8;border-color:#a0aec0;color:#1a2c4e;}
+
+/* ── 히스토리 모달 ── */
+.history-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
+.history-modal-box{background:#fff;border-radius:20px;width:100%;max-width:680px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.history-modal-head{background:linear-gradient(135deg,#1a3560,#0d1b35);color:#fff;padding:22px 28px;display:flex;justify-content:space-between;align-items:center;}
+.history-modal-head h3{font-size:17px;font-weight:700;}
+.history-modal-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1;}
+.history-modal-body{padding:24px;max-height:60vh;overflow-y:auto;}
+
 /* ── PRINT ── */
 @media print{
   body{background:#fff;}
@@ -334,6 +347,85 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 </div>
 
 <script>
+// ══════════════════════════════════════════════════
+//  SUPABASE 초기화
+// ══════════════════════════════════════════════════
+const SUPABASE_URL = 'https://kerjouwbcceljeqlgepk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlcmpvdXdiY2NlbGplcWxnZXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMjY1MTgsImV4cCI6MjA5MDYwMjUxOH0.otHqspjzsiDZwhw4kxfyfJHAMd_dPzdtGGox5jqo6WM';
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ══════════════════════════════════════════════════
+//  SUPABASE – 진단 결과 저장
+// ══════════════════════════════════════════════════
+async function saveDiagnosisResult() {
+  const u = state.userInfo;
+  if (!u.email) return;
+  const correct = state.testQuestions.filter((q, i) => state.answers[i] === q.ans).length;
+  const { error } = await sbClient.from('SDSkills').insert({
+    email:       u.email,
+    name:        u.name,
+    dept:        u.dept,
+    job:         u.job,
+    result_data: {
+      importance:  state.importance,
+      results:     state.results,
+      totalQ:      state.testQuestions.length,
+      answered:    Object.keys(state.answers).length,
+      correct
+    }
+  });
+  if (error) console.error('Supabase 저장 오류:', error.message);
+}
+
+// ══════════════════════════════════════════════════
+//  SUPABASE – 진단 히스토리 조회 및 모달
+// ══════════════════════════════════════════════════
+async function showHistoryModal() {
+  const email = state.userInfo.email;
+  if (!email) return;
+  document.getElementById('history-modal').style.display = 'flex';
+  document.getElementById('history-content').innerHTML =
+    '<div style="text-align:center;padding:40px;color:#94a3b8;">불러오는 중...</div>';
+
+  const { data, error } = await sbClient
+    .from('SDSkills')
+    .select('id, name, dept, job, result_data, saved_at')
+    .eq('email', email)
+    .order('saved_at', { ascending: false })
+    .limit(20);
+
+  if (error || !data?.length) {
+    document.getElementById('history-content').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#94a3b8;">저장된 진단 이력이 없습니다.</div>';
+    return;
+  }
+
+  let html = '';
+  data.forEach(row => {
+    const d   = new Date(row.saved_at);
+    const dt  = d.toLocaleDateString('ko-KR') + ' ' + d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+    const r   = row.result_data;
+    const pct = r.totalQ > 0 ? Math.round(r.correct / r.totalQ * 100) : 0;
+    const pctColor = pct >= 70 ? '#15803d' : pct >= 50 ? '#a16207' : '#b91c1c';
+    html += `<div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:14px;font-weight:700;color:#1a2c4e;">${row.job}</span>
+        <span style="font-size:12px;color:#94a3b8;">${dt}</span>
+      </div>
+      <div style="font-size:13px;color:#6b7fa3;">
+        ${row.name} · ${row.dept}<br>
+        <span style="margin-right:16px;">📝 ${r.totalQ}문항 중 ${r.answered}문항 응답</span>
+        <span style="font-weight:700;color:${pctColor};">정답률 ${pct}%</span>
+      </div>
+    </div>`;
+  });
+  document.getElementById('history-content').innerHTML = html;
+}
+
+function closeHistoryModal() {
+  document.getElementById('history-modal').style.display = 'none';
+}
+
 // ══════════════════════════════════════════════════
 //  DATA – 직무 구조
 // ══════════════════════════════════════════════════
@@ -701,11 +793,17 @@ function makeStepBar(current) {
   const steps = ['정보 입력','중요도 평가','역량 시험','결과 확인'];
   const ids = ['info','imp','test','results'];
   const ci = ids.indexOf(current);
-  return `<div class="step-bar">${steps.map((s,i) => {
+  const stepHtml = `<div class="step-bar">${steps.map((s,i) => {
     const cls = i < ci ? 'done' : i === ci ? 'active' : '';
     const line = i < steps.length-1 ? `<div class="step-line" style="${i<ci?'background:#e85d00':''}"></div>` : '';
     return `<div class="step ${cls}"><div class="step-dot">${i+1}</div><span class="step-label">${s}</span></div>${line}`;
   }).join('')}</div>`;
+  const histBtn = state.userInfo.email
+    ? `<div style="text-align:right;margin-top:-10px;margin-bottom:12px;">
+        <button onclick="showHistoryModal()" class="btn-history">📋 진단 히스토리 확인</button>
+       </div>`
+    : '';
+  return stepHtml + histBtn;
 }
 
 // ══════════════════════════════════════════════════
@@ -899,6 +997,7 @@ function submitTest() {
   calculateResults();
   renderResults();
   showPage('page-results');
+  saveDiagnosisResult();
 }
 
 // ══════════════════════════════════════════════════
@@ -1084,5 +1183,18 @@ function restartDiagnosis() {
 // ── Init step bars ──
 document.getElementById('step-bar-info').innerHTML = makeStepBar('info');
 </script>
+
+<!-- ═══════════════ 히스토리 모달 ═══════════════ -->
+<div id="history-modal" class="history-modal-bg">
+  <div class="history-modal-box">
+    <div class="history-modal-head">
+      <h3>📋 나의 진단 히스토리</h3>
+      <button class="history-modal-close" onclick="closeHistoryModal()">✕</button>
+    </div>
+    <div class="history-modal-body" id="history-content">
+      <div style="text-align:center;padding:40px;color:#94a3b8;">불러오는 중...</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
