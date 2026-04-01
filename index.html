@@ -151,7 +151,19 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 .btn-pdf:hover{transform:translateY(-2px);}
 .btn-review{background:#1a3560;color:#fff;border:none;padding:13px 32px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:block;margin:0 auto 12px;transition:.2s;}
 .btn-review:hover{background:#2a4a80;}
-.btn-restart{background:#f0f4f8;color:#1a2c4e;border:none;padding:12px 28px;border-radius:50px;font-size:14px;cursor:pointer;display:block;margin:0 auto 32px;}
+.btn-restart{background:#fff;color:#e85d00;border:2px solid #e85d00;padding:13px 32px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;display:block;margin:0 auto 32px;transition:.2s;}
+.btn-restart:hover{background:#fff5ef;transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,93,0,.15);}
+/* ── 정답/오답 노트 리뷰 페이지 ── */
+.btn-save-feedback{background:linear-gradient(135deg,#1a3560,#2a5090);color:#fff;border:none;padding:14px 40px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;display:block;margin:0 auto 12px;transition:.2s;}
+.btn-save-feedback:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,53,96,.3);}
+.btn-back-results{background:#f0f4f8;color:#1a2c4e;border:none;padding:12px 28px;border-radius:50px;font-size:14px;cursor:pointer;display:block;margin:0 auto 32px;transition:.2s;}
+.btn-back-results:hover{background:#e2e8f0;}
+/* ── 문제 피드백 이모지 ── */
+.q-feedback{display:flex;align-items:center;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid #f0f4f8;flex-wrap:wrap;}
+.q-feedback-label{font-size:12px;color:#94a3b8;margin-right:4px;}
+.q-fb-btn{background:none;border:2px solid transparent;border-radius:10px;font-size:24px;cursor:pointer;padding:4px 6px;line-height:1;transition:.15s;}
+.q-fb-btn:hover{transform:scale(1.2);}
+.q-fb-btn.selected{border-color:#e85d00;background:#fff5ef;transform:scale(1.15);}
 
 /* ── 정답/오답 노트 ── */
 .ar-wrap{margin-bottom:40px;}
@@ -202,7 +214,7 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 /* ── PRINT ── */
 @media print{
   body{background:#fff;}
-  #page-home,#page-info,#page-importance,#page-test{display:none!important;}
+  #page-home,#page-info,#page-importance,#page-test,#page-review{display:none!important;}
   #page-results{display:block!important;}
   .btn-pdf,.btn-review,.btn-restart,.ar-wrap{display:none!important;}
   .page-wrap{padding:0;max-width:100%;}
@@ -347,8 +359,8 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
     <div class="analysis-grid" id="analysis-grid"></div>
 
     <button class="btn-pdf" onclick="window.print()">📄 PDF 다운로드 (인쇄 → PDF로 저장)</button>
-    <button class="btn-review" onclick="toggleReview()">📝 정답/오답 노트 보기</button>
-    <button class="btn-restart" onclick="restartDiagnosis()">처음부터 다시하기</button>
+    <button class="btn-review" onclick="showPage('page-review');renderReviewPage();">📝 정답/오답 노트 보기</button>
+    <button class="btn-restart" onclick="restartDiagnosis()">↺ 처음부터 다시하기</button>
 
     <!-- 정답/오답 노트 (기본 숨김) -->
     <div id="answer-review" class="ar-wrap" style="display:none"></div>
@@ -785,7 +797,8 @@ let state = {
   testQuestions: [],
   answers: {},
   results: {},
-  currentQIdx: 0
+  currentQIdx: 0,
+  feedback: {}
 };
 let radarChart = null;
 
@@ -870,7 +883,7 @@ function renderImportancePage() {
   document.getElementById('importance-content').innerHTML = html;
 }
 
-function submitImportance() {
+async function submitImportance() {
   let missing = [];
   SKILLS.forEach(sk => {
     const sel = document.querySelector(`input[name="imp_${sk.id}"]:checked`);
@@ -881,7 +894,7 @@ function submitImportance() {
     alert(`중요도를 선택하지 않은 스킬이 ${missing.length}개 있습니다.\n모두 선택 후 진행해 주세요.`);
     return;
   }
-  buildTest();
+  await buildTest();
   renderTestPage();
   showPage('page-test');
 }
@@ -889,16 +902,47 @@ function submitImportance() {
 // ══════════════════════════════════════════════════
 //  TEST BUILDER
 // ══════════════════════════════════════════════════
-function buildTest() {
+async function fetchQuestionRatings() {
+  const { data } = await sbClient.from('SDSkillsFeedback').select('question_key, rating');
+  if (!data?.length) return {};
+  const agg = {};
+  data.forEach(r => {
+    if (!agg[r.question_key]) agg[r.question_key] = { sum: 0, count: 0 };
+    agg[r.question_key].sum += r.rating;
+    agg[r.question_key].count++;
+  });
+  Object.keys(agg).forEach(k => { agg[k].avg = agg[k].sum / agg[k].count; });
+  return agg;
+}
+
+async function buildTest() {
+  const ratings = await fetchQuestionRatings();
   state.testQuestions = [];
   let qIdx = 0;
   SKILLS.forEach(sk => {
     const imp = state.importance[sk.id] || 1;
     if (imp === 1) return;
     const pool = QB[sk.id] || [];
-    const count = imp >= 4 ? 2 : 1;
-    pool.slice(0, Math.min(count, pool.length)).forEach(q => {
-      state.testQuestions.push({ skillId: sk.id, taskId: sk.taskId, q: q.q, opts: q.opts, ans: q.ans, exp: q.exp, qIdx: qIdx++ });
+    const baseCount = imp >= 4 ? 2 : 1;
+
+    // 각 문제에 qKey 부여 후 평점 기반 필터/정렬
+    const candidates = pool
+      .map((q, qi) => ({ q, key: `${sk.id}_${qi}` }))
+      .filter(({ key }) => {
+        const r = ratings[key];
+        // 5회 이상 평가 + 평균 2점 미만이면 제외
+        return !(r && r.count >= 5 && r.avg < 2);
+      })
+      .sort((a, b) => {
+        // 평점 높은 문제를 앞으로
+        const ra = ratings[a.key], rb = ratings[b.key];
+        const sa = (ra && ra.count >= 3) ? ra.avg : 3;
+        const sb = (rb && rb.count >= 3) ? rb.avg : 3;
+        return sb - sa;
+      });
+
+    candidates.slice(0, Math.min(baseCount, candidates.length)).forEach(({ q, key }) => {
+      state.testQuestions.push({ skillId: sk.id, taskId: sk.taskId, q: q.q, opts: q.opts, ans: q.ans, exp: q.exp, qIdx: qIdx++, qKey: key });
     });
   });
 }
@@ -1193,19 +1237,126 @@ function renderAnswerReview() {
 }
 
 // ══════════════════════════════════════════════════
+//  REVIEW PAGE – 정답/오답 노트 + 문제 피드백
+// ══════════════════════════════════════════════════
+function setFeedback(qKey, rating) {
+  state.feedback[qKey] = rating;
+  document.querySelectorAll(`.q-fb-btn[data-qkey="${qKey}"]`).forEach(btn => {
+    btn.classList.toggle('selected', parseInt(btn.dataset.rating) === rating);
+  });
+}
+
+async function saveFeedback() {
+  const entries = Object.entries(state.feedback);
+  if (!entries.length) { alert('평가를 하나 이상 선택해 주세요.'); return; }
+  const rows = entries.map(([question_key, rating]) => ({ question_key, rating }));
+  const { error } = await sbClient.from('SDSkillsFeedback').insert(rows);
+  if (error) { console.error(error); alert('저장 중 오류가 발생했습니다.'); return; }
+  alert('피드백이 저장되었습니다. 감사합니다! 🙏');
+}
+
+function renderReviewPage() {
+  document.getElementById('step-bar-review').innerHTML = makeStepBar('results');
+  const qs = state.testQuestions;
+  if (!qs.length) {
+    document.getElementById('review-content').innerHTML = '<div class="card" style="text-align:center;color:#94a3b8;padding:32px;">출제된 문항이 없습니다.</div>';
+    return;
+  }
+  let correct = 0, answered = 0;
+  qs.forEach(q => { const c = state.answers[q.qIdx]; if (c !== undefined) { answered++; if (c === q.ans) correct++; } });
+  const pct = answered > 0 ? Math.round(correct / answered * 100) : 0;
+
+  const byTask = {};
+  qs.forEach(q => { if (!byTask[q.taskId]) byTask[q.taskId] = []; byTask[q.taskId].push(q); });
+
+  const nums = ['①','②','③','④','⑤'];
+  // 이모지: 5=😄 4=😊 3=😐 2=😟 1=😢
+  const emojis = [
+    { r:5, e:'😄', l:'매우 좋음' },
+    { r:4, e:'😊', l:'좋음' },
+    { r:3, e:'😐', l:'보통' },
+    { r:2, e:'😟', l:'나쁨' },
+    { r:1, e:'😢', l:'매우 나쁨' }
+  ];
+
+  let html = `<div class="ar-summary-box">
+    <div><div class="ar-big">${correct} / ${answered}</div><div class="ar-label">정답 / 응답 문항</div></div>
+    <div><div class="ar-big">${pct}%</div><div class="ar-label">정답률</div></div>
+    <div style="font-size:13px;color:#a8c0e0;line-height:1.8;">
+      ✅ 정답 ${correct}문항 &nbsp;|&nbsp; ❌ 오답 ${answered - correct}문항
+      ${answered < qs.length ? `&nbsp;|&nbsp; ⬜ 미답변 ${qs.length - answered}문항` : ''}
+    </div>
+  </div>`;
+
+  Object.entries(byTask).forEach(([taskId, taskQs]) => {
+    const taskObj = TASK_STRUCTURE.flatMap(c => c.tasks).find(t => t.id === taskId);
+    html += `<div class="ar-section-hd">${taskId} · ${taskObj?.name ?? ''}</div>`;
+    taskQs.forEach(q => {
+      const chosen = state.answers[q.qIdx];
+      const unanswered = chosen === undefined;
+      const isCorrect = !unanswered && chosen === q.ans;
+      const cls = unanswered ? 'ar-unanswered' : isCorrect ? 'ar-correct' : 'ar-wrong';
+      const statusText = unanswered ? '⬜ 미답변' : isCorrect ? '✅ 정답' : '❌ 오답';
+
+      const optsHtml = q.opts.map((opt, oi) => {
+        let optCls = 'ar-opt opt-neutral';
+        if (oi === q.ans) optCls = 'ar-opt opt-correct';
+        else if (!unanswered && oi === chosen) optCls = 'ar-opt opt-user-wrong';
+        const mark = oi === q.ans ? ' ← 정답' : (!unanswered && oi === chosen ? ' ← 내 답변' : '');
+        return `<div class="${optCls}">${nums[oi]} ${opt}${mark ? `<b>${mark}</b>` : ''}</div>`;
+      }).join('');
+
+      const curRating = state.feedback[q.qKey];
+      const fbHtml = emojis.map(({ r, e, l }) =>
+        `<button class="q-fb-btn${curRating === r ? ' selected' : ''}"
+          data-qkey="${q.qKey}" data-rating="${r}"
+          onclick="setFeedback('${q.qKey}',${r})" title="${l}">${e}</button>`
+      ).join('');
+
+      html += `<div class="ar-block ${cls}">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+          <div class="ar-status">${statusText} <span style="font-size:11px;font-weight:400;color:#94a3b8">문항 ${q.qIdx+1}</span></div>
+        </div>
+        <div class="ar-q">${q.q}</div>
+        <div class="ar-opts">${optsHtml}</div>
+        <div class="ar-exp"><b>📌 해설 :</b> ${q.exp}</div>
+        <div class="q-feedback">
+          <span class="q-feedback-label">이 문제 어떠셨나요?</span>
+          ${fbHtml}
+        </div>
+      </div>`;
+    });
+  });
+
+  document.getElementById('review-content').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
 //  RESTART
 // ══════════════════════════════════════════════════
 function restartDiagnosis() {
-  state = { userInfo:{}, importance:{}, testQuestions:[], answers:{}, results:{}, currentQIdx:0 };
+  state = { userInfo:{}, importance:{}, testQuestions:[], answers:{}, results:{}, currentQIdx:0, feedback:{} };
   if (radarChart) { radarChart.destroy(); radarChart = null; }
-  document.getElementById('answer-review').style.display = 'none';
-  document.querySelector('.btn-review').textContent = '📝 정답/오답 노트 보기';
   showPage('page-home');
 }
 
 // ── Init step bars ──
 document.getElementById('step-bar-info').innerHTML = makeStepBar('info');
 </script>
+
+<!-- ═══════════════ REVIEW ═══════════════ -->
+<div id="page-review" class="page">
+  <div class="page-wrap">
+    <div id="step-bar-review"></div>
+    <div class="page-header">
+      <h2>📝 정답/오답 노트</h2>
+      <p>각 문제에 이모지로 평가를 남겨주세요. 여러분의 피드백으로 더 좋은 문제가 만들어집니다.</p>
+    </div>
+    <div id="review-content"></div>
+    <button class="btn-save-feedback" onclick="saveFeedback()">📨 피드백 저장하기</button>
+    <button class="btn-back-results" onclick="showPage('page-results')">← 결과로 돌아가기</button>
+  </div>
+</div>
 
 <!-- ═══════════════ 완료 팝업 ═══════════════ -->
 <div id="complete-modal" class="complete-modal-bg">
