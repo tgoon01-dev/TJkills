@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SK쉴더스 사이버보안 직무역량 진단</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0f4f8;color:#1a2c4e;min-height:100vh;}
+
+/* ── 페이지 전환 핵심 수정 ── */
+.page{display:none;}
+.page.active{display:block;}
+#page-home.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;}
+
+/* ── HOME ── */
+#page-home{background:linear-gradient(150deg,#0d1b35 0%,#1a3560 50%,#c04000 100%);color:#fff;text-align:center;padding:40px 20px;}
+.home-logo{font-size:13px;letter-spacing:6px;color:#ff8c3a;text-transform:uppercase;margin-bottom:16px;}
+.home-title{font-size:38px;font-weight:700;line-height:1.3;margin-bottom:16px;}
+.home-sub{font-size:16px;color:#a8c0e0;max-width:560px;line-height:1.8;margin-bottom:40px;}
+.home-badge{display:inline-block;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:30px;padding:8px 22px;font-size:13px;color:#ffd0a0;margin-bottom:40px;}
+.btn-primary{background:linear-gradient(135deg,#e85d00,#ff8c3a);color:#fff;border:none;padding:18px 52px;border-radius:50px;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 8px 32px rgba(232,93,0,.4);transition:.2s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(232,93,0,.5);}
+.home-info{margin-top:48px;display:flex;gap:36px;flex-wrap:wrap;justify-content:center;}
+.home-info-item{text-align:center;}
+.home-info-item .num{font-size:30px;font-weight:700;color:#ff8c3a;}
+.home-info-item .lbl{font-size:12px;color:#a8c0e0;margin-top:4px;}
+
+/* ── INNER PAGES ── */
+.page-wrap{max-width:860px;margin:0 auto;padding:40px 20px;}
+.page-header{background:#fff;border-radius:16px;padding:28px 32px;margin-bottom:24px;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.page-header h2{font-size:22px;font-weight:700;color:#1a2c4e;}
+.page-header p{font-size:14px;color:#6b7fa3;margin-top:6px;line-height:1.6;}
+
+/* ── STEP BAR ── */
+.step-bar{display:flex;align-items:center;margin-bottom:28px;}
+.step{display:flex;align-items:center;font-size:12px;color:#a0aec0;}
+.step.done .step-dot{background:#e85d00;color:#fff;}
+.step.active .step-dot{background:#1a3560;color:#fff;}
+.step-dot{width:28px;height:28px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;margin-right:6px;flex-shrink:0;}
+.step-line{flex:1;height:2px;background:#e2e8f0;margin:0 8px;}
+.step.done .step-line{background:#e85d00;}
+.step-label{white-space:nowrap;}
+
+/* ── FORM ── */
+.card{background:#fff;border-radius:16px;padding:28px 32px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.form-group{margin-bottom:20px;}
+.form-group label{display:block;font-size:14px;font-weight:600;color:#1a2c4e;margin-bottom:8px;}
+.form-group input,.form-group select{width:100%;padding:12px 16px;border:1px solid #d1d9e6;border-radius:10px;font-size:14px;color:#1a2c4e;outline:none;transition:.2s;}
+.form-group input:focus,.form-group select:focus{border-color:#e85d00;box-shadow:0 0 0 3px rgba(232,93,0,.1);}
+.btn-next{background:linear-gradient(135deg,#1a3560,#2a5090);color:#fff;border:none;padding:14px 40px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:.2s;}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,53,96,.3);}
+
+/* ── IMPORTANCE 스티키 범례 ── */
+.sticky-legend{position:sticky;top:0;z-index:100;background:rgba(26,29,48,0.97);backdrop-filter:blur(6px);padding:10px 20px;display:flex;align-items:center;flex-wrap:wrap;gap:8px 20px;border-bottom:2px solid #e85d00;}
+.sticky-legend .sl-title{font-size:11px;font-weight:700;color:#ff8c3a;letter-spacing:1px;margin-right:4px;}
+.sticky-legend .sl-items{display:flex;gap:6px;flex-wrap:wrap;}
+.sl-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border-radius:20px;padding:3px 10px;font-size:12px;color:#e2e8f0;}
+.sl-chip b{color:#ff8c3a;font-size:13px;}
+
+/* ── IMPORTANCE CONTENT ── */
+.category-block{background:#fff;border-radius:16px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden;}
+.category-header{padding:18px 24px 16px;background:linear-gradient(135deg,#1a3560,#2a4a80);color:#fff;}
+.category-header h3{font-size:17px;font-weight:700;}
+.category-header .cat-legend{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.cat-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.15);border-radius:20px;padding:2px 9px;font-size:11px;color:#d0e4ff;}
+.cat-chip b{color:#ffd0a0;}
+.category-body{padding:16px 24px 20px;}
+.task-block{margin-bottom:16px;}
+.task-label{font-size:12px;font-weight:700;color:#e85d00;background:#fff5ef;display:inline-block;padding:3px 12px;border-radius:20px;margin-bottom:10px;}
+.skill-row{display:flex;align-items:center;gap:16px;padding:11px 0;border-bottom:1px solid #f0f4f8;}
+.skill-row:last-child{border-bottom:none;}
+.skill-text{flex:1;font-size:13px;color:#1a2c4e;line-height:1.5;}
+.rating-group{display:flex;gap:5px;flex-shrink:0;}
+.rating-group label{cursor:pointer;}
+.rating-group input[type=radio]{display:none;}
+.rating-btn{width:36px;height:36px;border-radius:8px;background:#f0f4f8;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#6b7fa3;transition:.15s;user-select:none;}
+.rating-group input[type=radio]:checked + .rating-btn{background:#1a3560;color:#fff;border-color:#1a3560;}
+.rating-group label:hover .rating-btn{background:#e85d00;color:#fff;}
+
+/* ── TEST ── */
+.q-block{background:#fff;border-radius:16px;padding:24px 28px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.q-meta{font-size:11px;color:#a0aec0;margin-bottom:8px;}
+.q-text{font-size:15px;font-weight:600;color:#1a2c4e;margin-bottom:16px;line-height:1.65;}
+.q-options{display:flex;flex-direction:column;gap:8px;}
+.q-option{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;transition:.15s;}
+.q-option:hover{background:#f0f4f8;}
+.q-option input[type=radio]{display:none;}
+.q-option.selected{background:#eff6ff;border-color:#2563eb;}
+.opt-num{width:24px;height:24px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#6b7fa3;flex-shrink:0;margin-top:1px;}
+.q-option.selected .opt-num{background:#2563eb;color:#fff;}
+.opt-text{font-size:13px;color:#1a2c4e;line-height:1.55;}
+.test-section-header{font-size:15px;font-weight:700;color:#1a3560;padding:14px 0 8px;margin-top:8px;border-left:3px solid #e85d00;padding-left:12px;}
+.progress-bar-wrap{background:#e2e8f0;border-radius:99px;height:7px;margin-top:12px;}
+.progress-bar{background:linear-gradient(90deg,#e85d00,#ff8c3a);height:7px;border-radius:99px;transition:.4s;}
+
+/* ── TEST 네비게이션 ── */
+.q-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;}
+.q-nav-counter{font-size:13px;color:#6b7fa3;text-align:center;flex:1;}
+.q-nav-counter strong{color:#1a2c4e;font-size:15px;}
+.btn-prev{background:#f0f4f8;color:#1a2c4e;border:none;padding:13px 26px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;min-width:100px;}
+.btn-prev:hover{background:#e2e8f0;}
+.btn-prev:disabled{opacity:.35;cursor:not-allowed;}
+.btn-qnext{background:linear-gradient(135deg,#1a3560,#2a5090);color:#fff;border:none;padding:13px 26px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;min-width:100px;}
+.btn-qnext:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,53,96,.3);}
+.btn-submit-q{background:linear-gradient(135deg,#e85d00,#ff8c3a);color:#fff;border:none;padding:13px 28px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;}
+.btn-submit-q:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,93,0,.35);}
+.q-task-badge{display:inline-block;background:#fff5ef;color:#e85d00;border:1px solid #ffd0a0;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;margin-bottom:12px;}
+.q-answered-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:2px;}
+
+/* ── RESULTS ── */
+.results-header{background:linear-gradient(135deg,#1a3560,#0d1b35);color:#fff;padding:32px;border-radius:16px;margin-bottom:24px;}
+.results-user{font-size:13px;color:#a8c0e0;margin-bottom:8px;}
+.results-title{font-size:24px;font-weight:700;}
+.results-date{font-size:12px;color:#6b8ab0;margin-top:6px;}
+.chart-card{background:#fff;border-radius:16px;padding:32px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.chart-card h3{font-size:17px;font-weight:700;color:#1a2c4e;margin-bottom:6px;}
+.chart-card p{font-size:13px;color:#6b7fa3;margin-bottom:24px;}
+.chart-wrap{max-width:540px;margin:0 auto;}
+.chart-legend{display:flex;gap:24px;justify-content:center;margin-top:16px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#1a2c4e;}
+.legend-dot{width:14px;height:14px;border-radius:3px;}
+.detail-table{width:100%;border-collapse:collapse;font-size:13px;}
+.detail-table th{background:#f8fafc;padding:10px 14px;text-align:center;font-weight:700;color:#6b7fa3;border-bottom:2px solid #e2e8f0;}
+.detail-table td{padding:10px 14px;text-align:center;border-bottom:1px solid #f0f4f8;}
+.detail-table tr:hover td{background:#f8fafc;}
+.score-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-weight:700;font-size:12px;}
+.score-high{background:#dcfce7;color:#15803d;}
+.score-mid{background:#fef9c3;color:#a16207;}
+.score-low{background:#fee2e2;color:#b91c1c;}
+.score-na{background:#f0f4f8;color:#94a3b8;}
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+@media(max-width:600px){.analysis-grid{grid-template-columns:1fr;}}
+.analysis-card{background:#fff;border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.analysis-card h4{font-size:14px;font-weight:700;margin-bottom:12px;}
+.analysis-card ul{list-style:none;}
+.analysis-card li{font-size:13px;color:#1a2c4e;padding:6px 0;border-bottom:1px solid #f0f4f8;display:flex;align-items:center;gap:8px;}
+.analysis-card li:last-child{border-bottom:none;}
+.tag-str{background:#dcfce7;color:#15803d;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700;flex-shrink:0;}
+.tag-dev{background:#fee2e2;color:#b91c1c;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700;flex-shrink:0;}
+.coverage-card{background:linear-gradient(135deg,#fff5ef,#fff);border:1px solid #ffd0a0;border-radius:16px;padding:24px;margin-bottom:20px;}
+.coverage-card h4{font-size:14px;font-weight:700;color:#1a2c4e;margin-bottom:16px;}
+.coverage-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.coverage-row .cl{font-size:13px;color:#1a2c4e;width:120px;flex-shrink:0;}
+.coverage-bar-bg{flex:1;background:#f0f4f8;border-radius:99px;height:10px;}
+.coverage-bar-fg{background:linear-gradient(90deg,#e85d00,#ff8c3a);height:10px;border-radius:99px;transition:.6s;}
+.coverage-row .cv{font-size:13px;font-weight:700;color:#e85d00;width:42px;text-align:right;}
+.btn-pdf{background:linear-gradient(135deg,#e85d00,#ff8c3a);color:#fff;border:none;padding:14px 36px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(232,93,0,.35);transition:.2s;display:block;margin:0 auto 12px;}
+.btn-pdf:hover{transform:translateY(-2px);}
+.btn-review{background:#1a3560;color:#fff;border:none;padding:13px 32px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:block;margin:0 auto 12px;transition:.2s;}
+.btn-review:hover{background:#2a4a80;}
+.btn-restart{background:#f0f4f8;color:#1a2c4e;border:none;padding:12px 28px;border-radius:50px;font-size:14px;cursor:pointer;display:block;margin:0 auto 32px;}
+
+/* ── 정답/오답 노트 ── */
+.ar-wrap{margin-bottom:40px;}
+.ar-summary-box{background:linear-gradient(135deg,#1a3560,#0d1b35);color:#fff;border-radius:16px;padding:24px 28px;margin-bottom:20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.ar-summary-box .ar-big{font-size:36px;font-weight:700;color:#ff8c3a;}
+.ar-summary-box .ar-label{font-size:13px;color:#a8c0e0;margin-top:2px;}
+.ar-section-hd{font-size:14px;font-weight:700;color:#1a3560;padding:12px 0 6px;margin-top:8px;border-left:3px solid #e85d00;padding-left:10px;}
+.ar-block{border-radius:14px;padding:20px 22px;margin-bottom:12px;border:1px solid transparent;}
+.ar-correct{background:#f0fdf4;border-color:#86efac;}
+.ar-wrong{background:#fff1f2;border-color:#fca5a5;}
+.ar-unanswered{background:#f8fafc;border-color:#d1d9e6;}
+.ar-status{font-size:13px;font-weight:700;margin-bottom:8px;}
+.ar-correct .ar-status{color:#15803d;}
+.ar-wrong .ar-status{color:#b91c1c;}
+.ar-unanswered .ar-status{color:#94a3b8;}
+.ar-q{font-size:14px;font-weight:600;color:#1a2c4e;margin-bottom:12px;line-height:1.6;}
+.ar-opts{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.ar-opt{font-size:13px;padding:6px 10px;border-radius:8px;display:flex;gap:8px;align-items:flex-start;}
+.ar-opt.opt-user-wrong{background:#fee2e2;color:#b91c1c;}
+.ar-opt.opt-correct{background:#dcfce7;color:#15803d;font-weight:600;}
+.ar-opt.opt-neutral{color:#6b7fa3;}
+.ar-exp{background:rgba(255,255,255,.7);border-radius:10px;padding:10px 14px;font-size:13px;color:#374151;line-height:1.7;border-left:3px solid #e85d00;}
+.ar-exp b{color:#1a3560;}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;}
+  #page-home,#page-info,#page-importance,#page-test{display:none!important;}
+  #page-results{display:block!important;}
+  .btn-pdf,.btn-review,.btn-restart,.ar-wrap{display:none!important;}
+  .page-wrap{padding:0;max-width:100%;}
+  .card,.chart-card,.analysis-card,.coverage-card,.results-header{box-shadow:none!important;border:1px solid #e2e8f0;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div id="page-home" class="page active">
+  <div class="home-logo">SK Shielders · Cyber Security</div>
+  <h1 class="home-title">사이버보안<br>직무역량 진단</h1>
+  <p class="home-sub">SK쉴더스 보안솔루션 구축 직무의 스킬을 측정하는 자기진단 도구입니다.<br>중요도 평가 → 역량 시험 → 방사형 그래프 결과 순으로 진행됩니다.</p>
+  <div class="home-badge">🔒 보안솔루션 구축 직무 · 프로토타입 v1.1</div>
+  <button class="btn-primary" onclick="showPage('page-info')">진단 시작하기 →</button>
+  <div class="home-info">
+    <div class="home-info-item"><div class="num">33</div><div class="lbl">직무 스킬</div></div>
+    <div class="home-info-item"><div class="num">12</div><div class="lbl">평가 과업</div></div>
+    <div class="home-info-item"><div class="num">5지선다</div><div class="lbl">객관식 시험</div></div>
+    <div class="home-info-item"><div class="num">방사형</div><div class="lbl">그래프 결과</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ INFO ═══════════════ -->
+<div id="page-info" class="page">
+  <div class="page-wrap">
+    <div id="step-bar-info"></div>
+    <div class="page-header">
+      <h2>기본 정보 입력</h2>
+      <p>진단 결과 PDF에 포함될 정보를 입력해 주세요.</p>
+    </div>
+    <div class="card">
+      <div class="form-group"><label>성명</label><input type="text" id="inp-name" placeholder="홍길동"></div>
+      <div class="form-group"><label>소속 부서</label><input type="text" id="inp-dept" placeholder="예: 사이버보안사업부"></div>
+      <div class="form-group"><label>이메일</label><input type="email" id="inp-email" placeholder="example@skshieldus.com"></div>
+      <div class="form-group">
+        <label>직무 선택</label>
+        <select id="inp-job">
+          <optgroup label="보안운영">
+            <option value="Endpoint 서비스">Endpoint 서비스</option>
+            <option value="보안솔루션 구축" selected>보안솔루션 구축</option>
+            <option value="보안솔루션 운영">보안솔루션 운영</option>
+            <option value="보안SI">보안SI</option>
+          </optgroup>
+          <optgroup label="침해대응">
+            <option value="보안관제">보안관제</option>
+            <option value="CERT">CERT</option>
+          </optgroup>
+          <optgroup label="보안컨설팅">
+            <option value="모의해킹">모의해킹</option>
+            <option value="취약점 진단">취약점 진단</option>
+            <option value="종합컨설팅">종합컨설팅</option>
+          </optgroup>
+          <optgroup label="Cloud보안">
+            <option value="Cloud보안 시스템 운영">Cloud보안 시스템 운영</option>
+            <option value="Cloud보안 시스템구축">Cloud보안 시스템구축</option>
+            <option value="Cloud보안 Architecture">Cloud보안 Architecture</option>
+            <option value="Cloud보안 컨설팅">Cloud보안 컨설팅</option>
+          </optgroup>
+          <optgroup label="OT/ICS보안">
+            <option value="OT/ICS보안 시스템운영">OT/ICS보안 시스템운영</option>
+            <option value="OT/ICS보안 시스템구축">OT/ICS보안 시스템구축</option>
+            <option value="OT/ICS보안 컨설팅">OT/ICS보안 컨설팅</option>
+          </optgroup>
+          <optgroup label="사업관리">
+            <option value="기술영업">기술영업</option>
+            <option value="PM">PM</option>
+          </optgroup>
+        </select>
+      </div>
+      <button class="btn-next" onclick="submitInfo()">다음 단계 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ IMPORTANCE ═══════════════ -->
+<div id="page-importance" class="page">
+  <!-- 스티키 중요도 범례 -->
+  <div class="sticky-legend">
+    <span class="sl-title">중요도 기준</span>
+    <div class="sl-items">
+      <span class="sl-chip"><b>1</b> 전혀 관계없음</span>
+      <span class="sl-chip"><b>2</b> 거의 관계없음</span>
+      <span class="sl-chip"><b>3</b> 보통</span>
+      <span class="sl-chip"><b>4</b> 중요함</span>
+      <span class="sl-chip"><b>5</b> 매우 중요함</span>
+    </div>
+  </div>
+  <div class="page-wrap">
+    <div id="step-bar-imp"></div>
+    <div class="page-header">
+      <h2>스킬 중요도 평가</h2>
+      <p>현재 담당 직무에서 각 스킬의 중요도를 1~5로 선택해 주세요. 중요도 <strong>1</strong>로 선택된 스킬은 시험에서 제외됩니다.</p>
+    </div>
+    <div id="importance-content"></div>
+    <div class="card" style="text-align:center">
+      <button class="btn-next" onclick="submitImportance()">중요도 저장 후 시험 시작 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TEST ═══════════════ -->
+<div id="page-test" class="page">
+  <div class="page-wrap">
+    <div id="step-bar-test"></div>
+    <div class="page-header">
+      <h2>직무역량 진단 시험</h2>
+      <p id="test-task-label" style="font-size:13px;color:#6b7fa3;margin-top:4px;"></p>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="test-progress" style="width:0%"></div></div>
+      <div id="test-count" style="font-size:12px;color:#a0aec0;text-align:right;margin-top:4px;"></div>
+    </div>
+    <div id="test-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ RESULTS ═══════════════ -->
+<div id="page-results" class="page">
+  <div class="page-wrap">
+    <div class="results-header">
+      <div class="results-user" id="res-user"></div>
+      <div class="results-title">사이버보안 직무역량 진단 결과</div>
+      <div class="results-date" id="res-date"></div>
+    </div>
+    <div class="chart-card">
+      <h3>과업별 역량 방사형 그래프</h3>
+      <p>파란색: 중요도 수준 &nbsp;|&nbsp; 주황색: 진단 역량 수준 (1~5점, 소수점 1자리)</p>
+      <div class="chart-wrap"><canvas id="radar-chart"></canvas></div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div>중요도 (자가평가)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e85d00"></div>역량 수준 (진단결과)</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:17px;font-weight:700;color:#1a2c4e;margin-bottom:16px;">과업별 상세 결과</h3>
+      <div style="overflow-x:auto">
+        <table class="detail-table">
+          <thead><tr><th>과업</th><th>과업명</th><th>중요도 평균</th><th>역량 수준</th><th>차이</th></tr></thead>
+          <tbody id="detail-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="coverage-section"></div>
+    <div class="analysis-grid" id="analysis-grid"></div>
+
+    <button class="btn-pdf" onclick="window.print()">📄 PDF 다운로드 (인쇄 → PDF로 저장)</button>
+    <button class="btn-review" onclick="toggleReview()">📝 정답/오답 노트 보기</button>
+    <button class="btn-restart" onclick="restartDiagnosis()">처음부터 다시하기</button>
+
+    <!-- 정답/오답 노트 (기본 숨김) -->
+    <div id="answer-review" class="ar-wrap" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  DATA – 직무 구조
+// ══════════════════════════════════════════════════
+const TASK_STRUCTURE = [
+  {cat:'A', catName:'솔루션 상품화', tasks:[
+    {id:'A-1',name:'기술 동향 분석'},
+    {id:'A-2',name:'신규 솔루션 검토'},
+    {id:'A-3',name:'솔루션 자료 작성'},
+    {id:'A-4',name:'솔루션 제안'}
+  ]},
+  {cat:'B', catName:'BMT/PoC 수행', tasks:[
+    {id:'B-1',name:'수행 범위 협의'},
+    {id:'B-2',name:'BMT/PoC 수행'},
+    {id:'B-3',name:'결과 보고서 작성 및 발표'}
+  ]},
+  {cat:'C', catName:'솔루션 구축', tasks:[
+    {id:'C-1',name:'고객 요구 분석'},
+    {id:'C-2',name:'보안 솔루션 구축'},
+    {id:'C-3',name:'모니터링'}
+  ]},
+  {cat:'D', catName:'서비스 운영', tasks:[
+    {id:'D-1',name:'운영 관리'},
+    {id:'D-2',name:'기술 지원'}
+  ]}
+];
+
+const SKILLS = [
+  {id:'A1-1',taskId:'A-1',text:'보안 최신 트렌드를 조사 및 학습한다'},
+  {id:'A1-2',taskId:'A-1',text:'신기술 관련 세미나·웨비나 참여를 통해 솔루션 사업화 가능성을 분석한다'},
+  {id:'A2-1',taskId:'A-2',text:'현 시점의 기술과 솔루션을 비교하여 개선사항을 도출한다'},
+  {id:'A2-2',taskId:'A-2',text:'신규 솔루션을 분석하고 테스트한다'},
+  {id:'A3-1',taskId:'A-3',text:'솔루션 제품 고객 소개 자료를 작성한다'},
+  {id:'A3-2',taskId:'A-3',text:'솔루션에 대한 내부 가이드(세이즈킷) 문서를 작성한다'},
+  {id:'A4-1',taskId:'A-4',text:'고객사에게 적합한 보안 솔루션을 소개한다'},
+  {id:'A4-2',taskId:'A-4',text:'고객사 요구사항에 대한 보안솔루션 제안서를 작성한다'},
+  {id:'B1-1',taskId:'B-1',text:'BMT/PoC를 위한 필수기능 요소를 담당자와 협의한다'},
+  {id:'B1-2',taskId:'B-1',text:'BMT/PoC 수행계획서를 작성한다'},
+  {id:'B2-1',taskId:'B-2',text:'환경 구성(구축형 혹은 SaaS형)을 검토한다'},
+  {id:'B2-2',taskId:'B-2',text:'최종 협의된 테스트 내용으로 벤더사/고객사 리뷰를 통해 최종안을 선정한다'},
+  {id:'B3-1',taskId:'B-3',text:'테스트 결과 보고서를 위한 기능별 점수 분배를 진행한다'},
+  {id:'B3-2',taskId:'B-3',text:'최종 보고서 내용을 발표한다'},
+  {id:'C1-1',taskId:'C-1',text:'제품 구축을 위해 고객사 사전 환경, 구축 대상, 수량을 확인한다'},
+  {id:'C1-2',taskId:'C-1',text:'사전 환경을 고려하여 보안 아키텍처(커스터마이징 요건 정의 포함)를 구성한다'},
+  {id:'C1-3',taskId:'C-1',text:'제품 구축을 위한 일정과 가이드를 담당자에게 전달한다'},
+  {id:'C2-1',taskId:'C-2',text:'OS 구조 및 구성(Windows/Linux/MacOS)을 이해한다'},
+  {id:'C2-2',taskId:'C-2',text:'사이버보안 프레임워크(STRIDE, OWASP Top10, MITRE ATT&CK)를 이해한다'},
+  {id:'C2-3',taskId:'C-2',text:'구축현장 실사 이후 일정계획(WBS)에 따라 구성안을 제시한다'},
+  {id:'C2-4',taskId:'C-2',text:'초기 설정 및 정책을 적용한다'},
+  {id:'C2-5',taskId:'C-2',text:'구축된 솔루션의 단위테스트를 수행한다'},
+  {id:'C2-6',taskId:'C-2',text:'단계별 산출물 양식과 절차를 작성한다'},
+  {id:'C2-7',taskId:'C-2',text:'사업 결과물의 기대사항 충족 여부를 검토한다'},
+  {id:'C3-1',taskId:'C-3',text:'구축된 보안 솔루션의 구성 및 기능동작을 확인한다'},
+  {id:'C3-2',taskId:'C-3',text:'솔루션에서 발생하는 로그를 분석하여 설명한다'},
+  {id:'C3-3',taskId:'C-3',text:'솔루션 안정성을 위한 가용성을 확인한다'},
+  {id:'D1-1',taskId:'D-1',text:'보안 솔루션의 월별 정기 점검을 한다'},
+  {id:'D1-2',taskId:'D-1',text:'고객별 요구와 권장 사항에 따라 정책을 업데이트한다'},
+  {id:'D1-3',taskId:'D-1',text:'서비스의 데이터를 분석하여 고도화 방안을 도출한다'},
+  {id:'D2-1',taskId:'D-2',text:'솔루션에서 발생하는 장애 및 이슈를 대응한다'},
+  {id:'D2-2',taskId:'D-2',text:'장애·이슈의 원인과 유형을 분석하여 해결방안을 도출한다'},
+  {id:'D2-3',taskId:'D-2',text:'제품과 관련된 문의사항을 대응한다'},
+  {id:'D2-4',taskId:'D-2',text:'제품 기술 지원을 벤더사에 요청한다'}
+];
+
+// ══════════════════════════════════════════════════
+//  QUESTION BANK  (ans: 0-based index, exp: 해설)
+// ══════════════════════════════════════════════════
+const QB = {
+'A1-1':[
+  {q:'2023년 이후 AI 기술을 활용하여 더욱 정교해진 대표적인 사이버 공격 유형은?',
+   opts:['AI 기반 랜섬웨어(타깃 정밀 선별·개인화 협박)','SQL 인젝션','버퍼 오버플로우','ARP 스푸핑','SYN 플러딩'],ans:0,
+   exp:'AI 기반 랜섬웨어는 머신러닝으로 고가치 피해자를 자동 선별하고 맞춤형 협박 메시지를 생성합니다. SQL 인젝션·버퍼 오버플로우 등 나머지는 AI 발전과 직접적 관련이 낮습니다.'},
+  {q:'Zero Trust 아키텍처의 핵심 원칙으로 올바른 것은?',
+   opts:['내부 네트워크는 신뢰할 수 있다','모든 접근을 항상 검증한다','VPN을 사용하면 안전하다','방화벽만 있으면 충분하다','사용자 인증은 한 번이면 된다'],ans:1,
+   exp:'"Never Trust, Always Verify"가 Zero Trust의 핵심입니다. 내부 네트워크도 외부와 동일하게 취급하며, 사용자·기기·애플리케이션 모든 접근을 매번 인증·인가합니다.'}
+],
+'A1-2':[
+  {q:'보안 솔루션 사업화 가능성 평가 시 가장 관계없는 고려 요소는?',
+   opts:['시장 수요','경쟁 솔루션 분석','기술적 완성도','개발자의 국적','고객 Pain Point 해결 여부'],ans:3,
+   exp:'사업화 가능성은 시장 수요, 경쟁사 분석, 기술 완성도, 고객 문제 해결 여부로 평가합니다. 개발자 국적은 사업화 가능성과 무관합니다.'},
+  {q:'SIEM(Security Information and Event Management)의 주요 기능으로 올바르지 않은 것은?',
+   opts:['로그 수집 및 분석','실시간 위협 탐지','네트워크 트래픽 암호화','보안 이벤트 상관 분석','규정 준수 보고'],ans:2,
+   exp:'SIEM은 로그 수집·분석, 실시간 탐지, 이벤트 상관 분석, 컴플라이언스 보고를 제공합니다. 트래픽 암호화는 VPN·TLS 등 다른 솔루션의 역할입니다.'}
+],
+'A2-1':[
+  {q:'기존 방화벽과 차세대 방화벽(NGFW)의 차이점으로 올바른 것은?',
+   opts:['NGFW는 포트 기반 필터링만 지원한다','NGFW는 애플리케이션 레이어 검사를 지원한다','NGFW는 속도가 느려 실무에 부적합하다','NGFW는 IPS 기능을 포함하지 않는다','NGFW는 SSL 복호화를 지원하지 않는다'],ans:1,
+   exp:'NGFW는 Layer 7(애플리케이션) 수준의 DPI(심층 패킷 검사), 통합 IPS, SSL 복호화, 사용자·앱 기반 정책을 지원합니다. 기존 방화벽은 포트/프로토콜 레벨만 처리합니다.'},
+  {q:'보안 솔루션 비교 평가 시 개선사항 도출 방법으로 가장 적절한 것은?',
+   opts:['가격이 비싼 솔루션이 항상 우수하다','RFP 요구사항과 실제 기능의 Gap 분석','브랜드 인지도 기준으로 선택한다','외국 솔루션이 항상 우수하다','최신 출시 솔루션이 항상 좋다'],ans:1,
+   exp:'RFP 기반 Gap 분석은 고객 요구사항과 제품 실제 기능 간 차이를 정량적으로 드러내어, 개선 우선순위를 객관적으로 도출하는 가장 체계적인 방법입니다.'}
+],
+'A2-2':[
+  {q:'신규 보안 솔루션 PoC 수행 시 테스트 항목으로 적절하지 않은 것은?',
+   opts:['기능 적합성 테스트','성능 부하 테스트','개발자 이력 조사','보안 취약점 점검','운영 환경 호환성 테스트'],ans:2,
+   exp:'PoC는 기능 적합성, 성능·부하, 취약점, 환경 호환성을 검증합니다. 개발자 이력 조사는 벤더 선정 단계의 평가 항목이지, 기술 PoC 테스트 항목이 아닙니다.'},
+  {q:'EDR(Endpoint Detection and Response)의 핵심 기능으로 올바른 것은?',
+   opts:['네트워크 패킷 암호화','엔드포인트 행위 기반 위협 탐지','방화벽 정책 자동 생성','이메일 스팸 필터링','웹 트래픽 압축'],ans:1,
+   exp:'EDR은 엔드포인트에서 프로세스·파일·레지스트리·네트워크 행위를 실시간 모니터링하여 위협을 탐지·격리·대응합니다. 암호화·스팸 필터링은 EDR 범주가 아닙니다.'}
+],
+'A3-1':[
+  {q:'고객 대상 보안 솔루션 소개 자료 작성 시 가장 중요한 요소는?',
+   opts:['기술 전문 용어를 최대한 사용한다','고객의 Pain Point와 솔루션 연결성을 명확히 제시한다','경쟁사 솔루션을 상세히 비교한다','개발 과정을 상세히 설명한다','가격 정보를 앞에 배치한다'],ans:1,
+   exp:'고객 소개 자료의 핵심은 "고객이 겪는 문제와 우리 솔루션이 어떻게 해결하는가"를 명확히 연결하는 것입니다. 기술 나열보다 비즈니스 가치 중심으로 작성해야 합니다.'},
+  {q:'효과적인 보안 솔루션 소개 자료의 구성 순서로 가장 적절한 것은?',
+   opts:['기술 스펙→가격→문제 정의→솔루션 소개','문제 정의→솔루션 소개→도입 사례→기대효과','회사 소개→가격→기술 스펙→도입 사례','도입 사례→가격→회사 소개→솔루션 소개','기술 스펙→도입 사례→가격→문제 정의'],ans:1,
+   exp:'문제 정의로 공감을 유도하고 → 솔루션으로 해결책을 제시하고 → 도입 사례(레퍼런스)로 신뢰를 쌓고 → 기대효과로 구매 동기를 자극하는 순서가 효과적입니다.'}
+],
+'A3-2':[
+  {q:'내부 가이드 문서 작성 시 가장 중요한 원칙은?',
+   opts:['가능한 한 짧게 작성한다','누구나 이해할 수 있도록 명확하고 상세하게 작성한다','전문 용어만 사용하여 권위를 높인다','이미지 없이 텍스트만으로 작성한다','개인 의견을 많이 포함한다'],ans:1,
+   exp:'현장 엔지니어 누구나 참고할 수 있도록 명확하고 단계별로 작성해야 합니다. 스크린샷, 예시 명령어 등 시각 자료를 적절히 활용하면 이해도가 높아집니다.'},
+  {q:'보안 솔루션 운영 가이드 문서에 반드시 포함되어야 할 항목은?',
+   opts:['개발자 개인 정보','장애 대응 절차 및 에스컬레이션 프로세스','경쟁사 솔루션 단점','솔루션 미래 로드맵만','마케팅 전략'],ans:1,
+   exp:'운영 가이드에는 장애 대응 절차(1차→2차 대응→벤더 에스컬레이션)와 연락처가 반드시 포함되어야 실제 장애 상황에서 빠르게 대응할 수 있습니다.'}
+],
+'A4-1':[
+  {q:'고객사에 적합한 보안 솔루션을 선정할 때 우선 고려해야 할 것은?',
+   opts:['솔루션 공급사 규모','고객사의 보안 현황·요구사항·예산','최신 출시 여부','가장 비싼 솔루션','가장 저렴한 솔루션'],ans:1,
+   exp:'솔루션 선정은 고객의 현재 보안 수준, 구체적 요구사항, 예산을 복합적으로 고려해야 합니다. 단순 가격이나 브랜드 기준 선택은 "미스핏(Misfit)" 도입으로 이어집니다.'},
+  {q:'금융권 고객사에 보안 솔루션 소개 시 특히 강조해야 할 사항은?',
+   opts:['솔루션의 UI 디자인','금융감독원 규제 및 컴플라이언스 준수 여부','개발 국가','색상 테마','광고 수상 이력'],ans:1,
+   exp:'금융권은 금융감독원 IT 보안 규정(전자금융감독규정, ISMS-P 등)과 개인정보보호법 준수가 필수입니다. 컴플라이언스 충족 여부가 솔루션 도입의 최우선 기준입니다.'}
+],
+'A4-2':[
+  {q:'보안 솔루션 제안서의 필수 구성 요소가 아닌 것은?',
+   opts:['현황 및 문제점 분석','솔루션 구성 및 기대효과','사업 수행 계획','담당자 사진','비용 산정'],ans:3,
+   exp:'제안서는 현황 분석, 솔루션 구성, 수행 계획, 비용 산정, 기대효과가 핵심 구성 요소입니다. 담당자 사진은 제안서 필수 요소가 아닙니다.'},
+  {q:'RFP 기반 제안서 작성 시 올바른 접근 방법은?',
+   opts:['RFP를 무시하고 자사 강점만 부각한다','RFP 요구사항 항목별로 대응 방안을 명확히 제시한다','가격만 낮추면 된다','경쟁사 제안서를 그대로 복사한다','최대한 짧게 작성한다'],ans:1,
+   exp:'RFP는 고객이 원하는 것을 명시한 문서입니다. 각 요구사항 항목에 "어떻게 충족하는지" 명확히 대응해야 합니다. RFP를 무시하고 자사 강점만 나열하면 탈락 확률이 높습니다.'}
+],
+'B1-1':[
+  {q:'BMT(Benchmark Test)와 PoC(Proof of Concept)의 차이점으로 올바른 것은?',
+   opts:['BMT는 개념 검증이고 PoC는 성능 비교다','BMT는 성능·기능 비교이고 PoC는 기술 구현 가능성 검증이다','두 용어는 완전히 동일하다','PoC는 항상 BMT 이후에 수행한다','BMT는 무조건 외부에서 수행한다'],ans:1,
+   exp:'BMT는 여러 벤더 제품의 성능·기능을 비교 평가하는 것이고, PoC는 특정 요구사항의 기술적 구현 가능성을 검증하는 개념 증명입니다. 목적이 다릅니다.'},
+  {q:'BMT/PoC 수행 전 필수기능 요소 협의 시 포함되어야 할 항목이 아닌 것은?',
+   opts:['테스트 범위 및 기간','평가 기준 및 배점','테스트 환경 사양','담당자의 취미','참여 벤더사 목록'],ans:3,
+   exp:'필수기능 협의에는 테스트 범위·기간, 평가 기준·배점, 환경 사양, 벤더 목록이 포함됩니다. 담당자의 취미는 업무 협의와 전혀 무관합니다.'}
+],
+'B1-2':[
+  {q:'BMT/PoC 수행계획서에 반드시 포함되어야 할 내용은?',
+   opts:['벤더사 직원 신상정보','수행 일정·평가 항목·담당자 역할 분담','경쟁사 영업 전략','솔루션 가격만','마케팅 계획'],ans:1,
+   exp:'수행계획서에는 누가(역할 분담), 언제(일정), 무엇을(평가 항목), 어떻게(방법) 평가할지가 명확히 포함되어야 합니다. 이는 공정한 BMT의 기본입니다.'},
+  {q:'BMT 수행계획서 작성 시 적절하지 않은 고려사항은?',
+   opts:['명확한 평가 기준 수립','현실적인 일정 계획','환경 구성 요구사항 정의','담당자 개인 정보 수집','결과 보고 방식 결정'],ans:3,
+   exp:'계획서는 평가 기준, 일정, 환경 요구사항, 결과 보고 방식을 다룹니다. 담당자 개인 정보 수집은 불필요하며 개인정보보호법 측면에서도 부적절합니다.'}
+],
+'B2-1':[
+  {q:'SaaS형 보안 솔루션의 장점으로 올바른 것은?',
+   opts:['데이터가 항상 사내에만 보관된다','초기 구축 비용이 낮고 빠른 도입이 가능하다','커스터마이징이 매우 자유롭다','인터넷 없이도 사용 가능하다','보안 정책 통제가 더 강하다'],ans:1,
+   exp:'SaaS는 별도 인프라 구축 없이 클라우드에서 제공되어 초기 투자 비용이 낮고 도입 속도가 빠릅니다. 단, 데이터가 외부 클라우드에 저장되므로 규제 업종은 신중히 검토해야 합니다.'},
+  {q:'금융기관이 SaaS보다 구축형 보안 솔루션을 선호하는 주요 이유는?',
+   opts:['SaaS가 더 비싸기 때문에','데이터 주권·규제 준수·내부망 보안 요구사항 때문에','SaaS는 기능이 부족하기 때문에','구축형이 더 빠른 업데이트를 제공하기 때문에','SaaS는 한국어를 지원하지 않기 때문에'],ans:1,
+   exp:'금융기관은 개인금융정보를 외부 클라우드에 저장하기 어렵고, 금융감독원 규정과 내부망 보안 정책 때문에 데이터를 직접 통제할 수 있는 구축형을 선호합니다.'}
+],
+'B2-2':[
+  {q:'BMT 최종안 선정 시 객관성을 높이기 위한 방법으로 가장 적절한 것은?',
+   opts:['가장 친한 벤더사 제품을 선정한다','사전에 합의된 평가 기준표에 따라 정량적으로 평가한다','가격이 가장 저렴한 제품을 선정한다','해외 유명 제품을 우선 선정한다','담당자 개인 선호도로 결정한다'],ans:1,
+   exp:'사전 합의된 정량적 기준표(Scorecard)로 평가해야 공정성 시비를 방지하고 의사결정의 근거를 남길 수 있습니다. 주관적 선호도는 분쟁의 소지가 됩니다.'},
+  {q:'BMT 결과 리뷰 회의에서 검토해야 할 항목이 아닌 것은?',
+   opts:['기능 충족 여부','성능 테스트 결과','벤더사 직원 외모','기술 지원 역량','비용 대비 효과'],ans:2,
+   exp:'BMT 리뷰 항목은 기능 충족, 성능, 기술 지원 역량, 비용 효과입니다. 담당자나 벤더 직원의 외모 등 개인적 외관은 객관적 평가 항목이 될 수 없습니다.'}
+],
+'B3-1':[
+  {q:'BMT 기능별 점수 분배 시 가장 적절한 방법은?',
+   opts:['모든 기능에 동일한 점수를 부여한다','고객사 요구사항의 중요도에 따라 차등 배점한다','벤더사 요청에 따라 점수를 조정한다','가격이 비싼 기능에 높은 점수를 준다','임의로 결정한다'],ans:1,
+   exp:'점수 분배는 고객사가 중요하게 생각하는 기능과 요구사항의 우선순위를 반영하여 차등 배점해야 평가 결과가 실제 비즈니스 가치와 일치합니다.'},
+  {q:'BMT 결과 점수 분배의 공정성을 위해 반드시 해야 할 것은?',
+   opts:['평가자 1명이 모든 점수를 결정한다','테스트 시작 전 모든 이해관계자와 배점 기준을 합의·문서화한다','가장 높은 점수 항목만 보고서에 포함한다','결과 수정 권한을 벤더사에 부여한다','점수 분배를 문서화하지 않는다'],ans:1,
+   exp:'배점 기준을 사전에 모든 이해관계자(고객, 벤더, 평가자)와 합의하고 문서화해야 합니다. 사후 조정은 공정성을 훼손하고 법적 분쟁으로 이어질 수 있습니다.'}
+],
+'B3-2':[
+  {q:'BMT/PoC 최종 보고서 발표 시 효과적인 방법은?',
+   opts:['가능한 많은 내용을 빠르게 설명한다','핵심 결론을 먼저 제시하고 근거를 설명한다','기술 용어만 사용하여 전문성을 표현한다','경쟁사를 직접 비방한다','발표 시간 제한을 무시한다'],ans:1,
+   exp:'BLUF(Bottom Line Up Front) 방식, 즉 결론을 먼저 제시하고 근거를 뒤에 설명하는 방식이 의사결정권자의 이해와 판단을 가장 빠르게 돕습니다.'},
+  {q:'비기술 의사결정권자가 참여하는 BMT 결과 발표에서 가장 중요한 것은?',
+   opts:['모든 기술적 세부사항을 설명한다','비즈니스 가치와 ROI 중심으로 결과를 설명한다','영어 용어만 사용한다','300페이지 이상의 보고서를 준비한다','발표 없이 이메일로만 전달한다'],ans:1,
+   exp:'경영진 등 비기술 의사결정권자는 기술 사양보다 "도입 후 비즈니스 위험이 얼마나 줄어드는가", "투자 대비 효과(ROI)는 무엇인가"에 관심이 있습니다.'}
+],
+'C1-1':[
+  {q:'보안 솔루션 구축 전 사전 환경 조사에서 확인해야 할 항목이 아닌 것은?',
+   opts:['기존 네트워크 구성도','서버 OS 및 사양','담당자 개인 재산 현황','보안 정책 현황','기존 보안 솔루션 목록'],ans:2,
+   exp:'사전 환경 조사는 네트워크 구성도, 서버 사양, 기존 보안 솔루션, 보안 정책을 파악하여 구축 설계에 반영합니다. 담당자 개인 재산 현황은 업무와 무관합니다.'},
+  {q:'방화벽 솔루션 구축 시 가장 먼저 파악해야 할 것은?',
+   opts:['인터넷 사용량','보호 대상 자산 목록 및 네트워크 세그먼트','임직원 수','사무실 위치','회사 매출액'],ans:1,
+   exp:'방화벽은 어떤 자산을 어느 Zone에서 어떻게 보호할지를 기준으로 설계됩니다. 보호 대상 자산 목록과 네트워크 세그먼트 파악이 설계의 출발점입니다.'}
+],
+'C1-2':[
+  {q:'DMZ(Demilitarized Zone) 구성의 주요 목적은?',
+   opts:['내부 네트워크 속도 향상','외부에서 접근 가능한 서비스를 내부 네트워크와 분리하여 보호','VPN 성능 개선','내부 직원 인터넷 차단','데이터 백업'],ans:1,
+   exp:'DMZ는 웹서버·메일서버 등 외부 접근 서비스를 내부 네트워크와 분리하는 완충 구간입니다. 공격자가 DMZ를 침해해도 내부 네트워크로의 Lateral Movement를 차단합니다.'},
+  {q:'보안 아키텍처 설계 시 \'심층 방어(Defense in Depth)\' 원칙이란?',
+   opts:['방화벽 하나로 모든 보안을 해결한다','여러 보안 계층을 중첩하여 단일 장애점을 방지한다','내부 네트워크를 외부와 완전 분리한다','가장 비싼 솔루션을 도입한다','물리적 보안만 강화한다'],ans:1,
+   exp:'심층 방어는 방화벽·IPS·엔드포인트 보안·DLP 등 여러 보안 계층을 중첩 적용하여 어느 한 계층이 뚫려도 다른 계층이 방어하는 전략입니다. 단일 솔루션 의존은 위험합니다.'}
+],
+'C1-3':[
+  {q:'보안 솔루션 구축 일정 계획 수립 시 가장 중요한 고려사항은?',
+   opts:['구축팀의 개인 휴가 일정','고객사 업무 영향 최소화 및 현실적인 단계별 일정','벤더사의 편의','가장 빠른 구축 완료','비용 절감만 고려'],ans:1,
+   exp:'구축 일정은 고객사 업무 시간대(야간·주말 작업), 단계별 검증 및 롤백 시간을 포함하여 현실적으로 수립해야 합니다. 빠른 완료만 추구하면 품질과 안정성이 저하됩니다.'},
+  {q:'구축 담당자에게 전달하는 사전 가이드에 포함되어야 할 내용은?',
+   opts:['구축팀 개인 연락처만','사전 준비 사항·접근 권한·환경 요구사항','구축 비용 청구서','마케팅 자료','경쟁사 정보'],ans:1,
+   exp:'사전 가이드에는 고객사가 준비해야 할 환경(OS, 포트 오픈, 방화벽 예외처리), 필요 계정·권한, 접근 방법이 포함되어야 구축 당일 지연 없이 진행됩니다.'}
+],
+'C2-1':[
+  {q:'Linux 서버에서 실행 중인 포트를 확인하는 명령어로 올바른 것은?',
+   opts:['dir','netstat -tlnp 또는 ss -tlnp','ipconfig','tasklist','ping'],ans:1,
+   exp:'Linux에서 `netstat -tlnp` 또는 `ss -tlnp`로 TCP 리스닝 포트와 해당 프로세스를 확인합니다. `dir`, `ipconfig`, `tasklist`는 Windows 명령어입니다.'},
+  {q:'Windows Server에서 이벤트 로그를 확인하는 방법으로 올바른 것은?',
+   opts:['/var/log 디렉토리 확인','이벤트 뷰어 또는 PowerShell Get-EventLog 사용','tail 명령어 사용','grep 명령어 사용','syslog 데몬 확인'],ans:1,
+   exp:'Windows의 이벤트 뷰어(Event Viewer)는 보안·시스템·응용프로그램 로그를 GUI로 확인합니다. PowerShell에서는 `Get-EventLog` 또는 `Get-WinEvent`를 사용합니다.'}
+],
+'C2-2':[
+  {q:'MITRE ATT&CK 프레임워크에서 \'Lateral Movement\'가 의미하는 것은?',
+   opts:['최초 침투 단계','공격자가 네트워크 내에서 다른 시스템으로 이동하는 기법','데이터 유출 단계','권한 상승 기법','흔적 삭제 기법'],ans:1,
+   exp:'Lateral Movement는 초기 침투 후 공격자가 내부 네트워크에서 다른 시스템으로 이동하는 기법들(Pass-the-Hash, RDP 악용, WMI 등)을 분류합니다. MITRE ATT&CK Matrix의 중간 단계에 해당합니다.'},
+  {q:'OWASP Top 10에서 \'Injection\' 취약점의 대표적인 예시는?',
+   opts:['암호화 실패','SQL Injection·OS Command Injection','취약한 인증','보안 설정 오류','안전하지 않은 역직렬화'],ans:1,
+   exp:'Injection은 SQL, OS 명령어, LDAP 등 인터프리터에 신뢰할 수 없는 데이터를 삽입하는 공격입니다. SQL Injection이 가장 대표적이며, OWASP Top 10에서 A03에 해당합니다.'}
+],
+'C2-3':[
+  {q:'WBS(Work Breakdown Structure)의 주요 목적은?',
+   opts:['팀원 급여를 계산하기 위해','프로젝트를 관리 가능한 작업 단위로 분해하여 계획 수립','고객사 조직도를 작성하기 위해','예산만을 추적하기 위해','기술 사양을 문서화하기 위해'],ans:1,
+   exp:'WBS는 프로젝트 전체 범위를 계층적 작업 단위로 분해하여 일정·자원·비용을 계획하고 관리하는 기법입니다. MS Project, Jira 등으로 구현합니다.'},
+  {q:'보안 솔루션 구축 WBS에서 Critical Path를 파악하는 이유는?',
+   opts:['불필요한 작업을 추가하기 위해','일정 지연 위험이 높은 작업을 파악하고 집중 관리하기 위해','팀원 평가를 위해','비용을 증가시키기 위해','고객사와 계약을 연장하기 위해'],ans:1,
+   exp:'Critical Path(주공정)는 프로젝트 종료 날짜를 결정하는 가장 긴 경로입니다. 이 경로의 작업이 지연되면 전체 프로젝트가 지연되므로 리스크를 집중 관리해야 합니다.'}
+],
+'C2-4':[
+  {q:'방화벽 초기 설정 시 \'최소 권한 원칙\'을 올바르게 적용하는 방법은?',
+   opts:['모든 트래픽을 허용하고 필요한 것만 차단','모든 트래픽을 차단하고 필요한 것만 허용','기본 설정을 그대로 사용','외부 트래픽만 차단','내부 트래픽만 차단'],ans:1,
+   exp:'"Deny All, Permit by Exception"(기본 차단, 예외 허용)이 보안 모범 사례입니다. 반대로 "모두 허용, 필요 시 차단"은 불필요한 경로를 열어두어 공격 표면이 넓어집니다.'},
+  {q:'보안 솔루션 초기 설정 완료 후 반드시 해야 할 작업은?',
+   opts:['설치 패키지 삭제','설정 변경 사항 문서화 및 기준선(Baseline) 저장','모든 로그 삭제','관리자 비밀번호 공유','솔루션 재설치'],ans:1,
+   exp:'설정 변경 사항을 문서화하고 Configuration Baseline을 저장해야, 이후 변경이나 이상 발생 시 비교 기준으로 활용할 수 있고 감사(Audit)에도 대응할 수 있습니다.'}
+],
+'C2-5':[
+  {q:'IDS/IPS 기능 검증을 위한 단위테스트 방법으로 가장 적절한 것은?',
+   opts:['실제 악성코드를 운영 환경에 배포한다','알려진 시그니처를 포함한 테스트 트래픽(EICAR 등)을 사용한다','테스트를 생략하고 운영 환경에 바로 적용한다','벤더사 직원에게 전적으로 위임한다','방화벽을 끄고 테스트한다'],ans:1,
+   exp:'EICAR 테스트 파일은 실제 악성코드 없이 안티바이러스·IPS 기능을 검증하는 업계 표준 도구입니다. 운영 환경에 실제 악성코드 배포는 절대 금지입니다.'},
+  {q:'단위 테스트 결과 문서화 시 포함해야 할 내용은?',
+   opts:['테스트 담당자 급여','테스트 항목·예상 결과·실제 결과·합격/불합격 여부','개인 의견만','테스트 실패 항목은 제외','가격 정보만'],ans:1,
+   exp:'결과서에는 테스트 ID, 항목, 예상 결과, 실제 결과, 합격/불합격, 작성자·일시가 포함되어야 공식 산출물로 인정받고 향후 이슈 추적에 활용됩니다.'}
+],
+'C2-6':[
+  {q:'보안 솔루션 구축 프로젝트에서 \'산출물(Deliverable)\'의 정의로 올바른 것은?',
+   opts:['프로젝트 예산','각 단계 완료 시 납품되는 문서나 결과물','프로젝트 팀원 목록','회의 참석자 명단','벤더사 계약서만'],ans:1,
+   exp:'산출물(Deliverable)은 각 프로젝트 단계가 완료될 때 고객에게 제출하는 문서나 결과물입니다. 구축계획서, 설계서, 구축결과서, 운영매뉴얼 등이 해당됩니다.'},
+  {q:'구축 프로젝트의 단계별 산출물 순서로 올바른 것은?',
+   opts:['운영매뉴얼→제안서→구축계획서→단위테스트결과서','제안서/계약→구축계획서→설계서→구축결과서→운영매뉴얼','구축결과서→설계서→제안서→운영매뉴얼','단위테스트결과서→구축계획서→제안서→설계서','모든 산출물을 동시에 작성한다'],ans:1,
+   exp:'보안 솔루션 구축의 산출물 순서: 제안서/계약 → 구축계획서 → 설계서 → 구축결과서(단위테스트 포함) → 운영매뉴얼. 각 단계 산출물이 다음 단계의 입력 기반이 됩니다.'}
+],
+'C2-7':[
+  {q:'사업 결과물이 기대사항을 충족했는지 검토하는 방법으로 가장 적절한 것은?',
+   opts:['담당자 직감으로 판단한다','최초 RFP/제안서 요구사항과 실제 구현 결과를 항목별로 대조한다','가장 최근 담당자 의견만 반영한다','미충족 항목을 숨긴다','구두로만 확인한다'],ans:1,
+   exp:'검수는 최초 RFP와 제안서의 요구사항 목록을 기준으로 항목별 충족 여부를 대조하는 방식이 가장 체계적입니다. 주관적 판단은 분쟁의 소지가 됩니다.'},
+  {q:'사업 결과물 검수에서 미충족 사항 발견 시 올바른 대응은?',
+   opts:['고객에게 알리지 않는다','미충족 사항을 명시하고 보완 계획을 수립하여 고객과 협의한다','계약서를 수정하여 요구사항에서 제거한다','담당자 교체를 요청한다','프로젝트를 즉시 중단한다'],ans:1,
+   exp:'미충족 사항을 투명하게 보고하고 보완 계획(일정·방법)을 합의하는 것이 장기적 신뢰 유지에 유리합니다. 은폐는 추후 더 큰 클레임과 신뢰 손실로 이어집니다.'}
+],
+'C3-1':[
+  {q:'구축 완료 후 보안 솔루션의 기능 동작 확인 방법으로 가장 적절한 것은?',
+   opts:['재부팅만 하면 된다','사전에 정의된 테스트 시나리오에 따라 각 기능을 체계적으로 검증한다','벤더사 말을 그대로 믿는다','1개월 후 확인한다','문서만으로 확인한다'],ans:1,
+   exp:'구축 후 기능 동작 확인은 사전 정의된 테스트 케이스(허용·차단 시나리오 등)에 따라 체계적으로 수행해야 합니다. 감각이나 벤더 주장만으로는 충분하지 않습니다.'},
+  {q:'방화벽 구축 후 정상 동작 확인 방법으로 가장 적절한 것은?',
+   opts:['방화벽 전원을 끄고 테스트한다','허용 정책과 차단 정책 모두 테스트 트래픽으로 검증한다','인터넷 속도만 측정한다','이메일로 확인 요청만 한다','벤더사 엔지니어만 확인한다'],ans:1,
+   exp:'방화벽 동작 확인은 허용해야 할 트래픽(정상 통과)과 차단해야 할 트래픽(차단 확인) 모두를 테스트해야 합니다. 둘 중 하나만 확인하면 정책 오설정을 놓칩니다.'}
+],
+'C3-2':[
+  {q:'SIEM 로그 분석 시 \'상관 분석(Correlation)\'의 목적은?',
+   opts:['로그 용량을 줄이기 위해','개별 이벤트 간 연관성을 파악하여 복잡한 공격 패턴을 탐지','로그를 삭제하기 위해','사용자 편의성을 높이기 위해','시스템 성능을 향상시키기 위해'],ans:1,
+   exp:'상관 분석은 개별적으로 낮은 심각도의 이벤트들을 연결하여 APT·내부자 위협 등 복잡한 공격 시나리오를 탐지합니다. 단일 이벤트 분석만으로는 놓치는 공격이 많습니다.'},
+  {q:'방화벽 로그에서 Deny 이벤트가 급증했을 때 먼저 확인해야 할 것은?',
+   opts:['사무실 온도','출발지 IP·목적지 IP/포트·시간대 패턴 분석','네트워크 케이블 색상','서버 이름 변경 여부','담당자 교체 여부'],ans:1,
+   exp:'Deny 급증 시 출발지·목적지 IP, 포트, 시간대 패턴을 분석하면 포트 스캔·DDoS 전조·정책 오설정 여부를 판단할 수 있습니다. 이것이 로그 분석의 기본 절차입니다.'}
+],
+'C3-3':[
+  {q:'보안 솔루션의 고가용성(HA) 구성 방식으로 올바른 것은?',
+   opts:['단일 장비만 사용한다','Active-Active 또는 Active-Standby 이중화 구성','백업 없이 운영한다','가상화 없이 물리 서버만 사용한다','인터넷 연결을 차단한다'],ans:1,
+   exp:'Active-Active는 두 장비가 동시에 트래픽을 처리하고, Active-Standby는 주 장비 장애 시 보조 장비가 자동 인계받습니다. 단일 구성(SPOF)은 장애 시 전체 중단 위험이 있습니다.'},
+  {q:'SLA에서 \'99.9% 가용성\'은 연간 최대 몇 시간의 다운타임을 의미하는가?',
+   opts:['약 0.1시간','약 8.76시간','약 87.6시간','약 876시간','약 24시간'],ans:1,
+   exp:'99.9% 가용성 = 연간 다운타임 365×24×0.001 = 8.76시간(약 9시간). 99.99%는 약 52분, 99.999%는 약 5분입니다. SLA 계약 시 다운타임 허용 시간을 정확히 이해해야 합니다.'}
+],
+'D1-1':[
+  {q:'보안 솔루션 정기 점검 항목으로 반드시 포함되어야 하는 것은?',
+   opts:['담당자 개인 일정','정책 유효성·패치 현황·성능 지표·이상 징후','솔루션 마케팅 자료','구매 이력만','경쟁사 동향'],ans:1,
+   exp:'정기 점검은 정책 유효성(좀비 룰 확인), 패치·버전 현황, CPU·메모리·처리량 등 성능 지표, 이상 트래픽·이벤트 패턴 검토를 포함해야 솔루션 이상을 사전에 감지할 수 있습니다.'},
+  {q:'정기 점검에서 보안 정책의 \'좀비 룰(Zombie Rule)\'이란?',
+   opts:['야간에만 작동하는 정책','실제로 트래픽이 매칭되지 않는 불필요한 정책','긴급 상황 시 활성화되는 정책','임시로 적용된 정책','자동으로 생성되는 정책'],ans:1,
+   exp:'좀비 룰은 장기간 트래픽이 매칭되지 않는 불필요한 규칙입니다. 정기적으로 식별·제거하지 않으면 정책이 복잡해지고 관리 부담과 오설정 위험이 높아집니다.'}
+],
+'D1-2':[
+  {q:'보안 정책 업데이트 시 변경 관리(Change Management) 절차를 따르는 이유는?',
+   opts:['절차가 복잡하여 느리게 하기 위해','무단 변경으로 인한 장애를 방지하고 변경 이력을 관리하기 위해','담당자 업무를 늘리기 위해','비용을 증가시키기 위해','고객과의 소통을 줄이기 위해'],ans:1,
+   exp:'변경 관리 절차(요청→검토→승인→구현→검증→문서화)를 통해 무단 변경 장애를 방지하고 이력을 추적합니다. 장애 발생 시 변경 이력이 원인 분석의 핵심 근거가 됩니다.'},
+  {q:'고객사 요청으로 방화벽 정책 변경 시 반드시 수행해야 할 사전 작업은?',
+   opts:['즉시 변경한다','변경 영향도 분석 및 롤백 계획 수립','다른 담당자에게 전달한다','고객 요청을 무시한다','변경 없이 기존 정책 유지'],ans:1,
+   exp:'정책 변경 전 영향도 분석(변경으로 영향받는 트래픽·서비스)과 롤백 계획(문제 발생 시 원복 절차)을 반드시 수립해야 변경 위험을 최소화할 수 있습니다.'}
+],
+'D1-3':[
+  {q:'보안 서비스 고도화를 위한 데이터 분석에서 가장 중요한 것은?',
+   opts:['데이터 양만 늘린다','서비스 품질·보안 효과성 향상을 위한 패턴과 인사이트 발견','기존 방식을 그대로 유지한다','비용만 줄인다','고객 수만 늘린다'],ans:1,
+   exp:'데이터 분석의 목적은 현황 파악을 넘어 서비스 개선 인사이트를 도출하는 것입니다. 탐지율 변화 추이, 오탐 패턴, 처리 속도 등이 고도화 근거 데이터가 됩니다.'},
+  {q:'보안 솔루션 고도화 방안 도출 시 적절하지 않은 지표는?',
+   opts:['탐지율(Detection Rate)','오탐율(False Positive Rate)','평균 탐지 시간(MTTD)','담당 엔지니어의 혈액형','평균 대응 시간(MTTR)'],ans:3,
+   exp:'보안 서비스 KPI는 탐지율, 오탐율(FP Rate), MTTD(Mean Time to Detect), MTTR(Mean Time to Respond)입니다. 담당자 혈액형은 서비스 품질 지표와 전혀 무관합니다.'}
+],
+'D2-1':[
+  {q:'보안 솔루션 장애 발생 시 올바른 초기 대응 순서는?',
+   opts:['원인 분석→장애 탐지→고객 통보→복구','장애 탐지→영향도 파악→고객 통보→임시 조치→원인 분석→영구 복구','고객 통보→장애 탐지→원인 분석→복구','복구→원인 분석→장애 탐지→고객 통보','원인 분석→복구→장애 탐지→고객 통보'],ans:1,
+   exp:'장애 대응 표준 순서: 탐지 → 영향도 파악 → 고객 통보 → 임시 조치(서비스 복구) → 원인 분석 → 영구 조치. 원인 분석보다 서비스 복구가 우선입니다.'},
+  {q:'방화벽 장애로 업무 트래픽이 차단되었을 때 최우선 조치는?',
+   opts:['방화벽을 즉시 교체한다','장애 범위를 파악하고 바이패스(Bypass) 또는 임시 대안 적용','고객사 직원에게 귀가를 지시한다','벤더사가 올 때까지 대기한다','방화벽 전원을 끈다'],ans:1,
+   exp:'업무 트래픽 차단 시 바이패스 모드 전환 또는 임시 우회 경로(대체 라우팅)를 통해 비즈니스 연속성을 먼저 확보해야 합니다. 원인 분석은 서비스 복구 이후입니다.'}
+],
+'D2-2':[
+  {q:'반복적인 보안 솔루션 장애의 근본 원인 파악 방법으로 가장 적절한 것은?',
+   opts:['매번 임시 조치만 한다','RCA(Root Cause Analysis) 기법으로 근본 원인 도출','장애 기록을 삭제한다','담당자를 교체한다','솔루션을 재설치한다'],ans:1,
+   exp:'RCA(5 Why, Fishbone Diagram 등)는 피상적 증상이 아닌 근본 원인을 찾아 재발을 방지합니다. 임시 조치만 반복하면 동일 장애가 주기적으로 재발합니다.'},
+  {q:'\'5 Why\' 기법을 보안 장애 분석에 적용하는 목적은?',
+   opts:['책임자를 5명 이상 찾기 위해','표면적 증상이 아닌 근본 원인을 찾기 위해','5개의 해결방안을 도출하기 위해','5일 이내에 해결하기 위해','5명의 팀원이 협력하기 위해'],ans:1,
+   exp:'"왜?"를 5번 반복하여 표면 원인에서 근본 원인으로 파고드는 기법입니다. 예: 장애 발생→정책 오류→변경 관리 미준수→승인 프로세스 부재→프로세스 설계 결함.'}
+],
+'D2-3':[
+  {q:'고객사의 기술 문의에 대응할 때 가장 중요한 원칙은?',
+   opts:['가능한 빨리 전화를 끊는다','정확하게 파악하고, 모르면 확인 후 답변한다','항상 즉답한다','문의 내용을 기록하지 않는다','벤더사에게 모두 전가한다'],ans:1,
+   exp:'정확성과 신뢰성이 핵심입니다. 모르는 내용은 "확인 후 답변드리겠습니다"로 안내하고 반드시 후속 답변을 이행해야 합니다. 섣부른 즉답은 잘못된 정보 전달로 이어집니다.'},
+  {q:'고객 문의 대응 이력 관리의 중요성으로 가장 적절한 것은?',
+   opts:['법적 의무이기 때문에','반복 문의 패턴 파악·서비스 개선·지식 공유를 위해','시간을 낭비하기 때문에','담당자 평가를 위해서만','고객 정보 수집을 위해'],ans:1,
+   exp:'이력 관리를 통해 반복 문의 패턴을 발견하여 FAQ를 만들거나 제품 개선으로 연결할 수 있습니다. 또한 신규 담당자 교육과 지식 자산화에도 활용됩니다.'}
+],
+'D2-4':[
+  {q:'벤더사에 기술 지원을 요청할 때 포함해야 할 정보로 가장 적절한 것은?',
+   opts:['고객사 대표이사 연락처','장애 현상·발생 시간·로그·재현 방법·긴급도','개인 감정','경쟁사 제품 비교','계약 가격'],ans:1,
+   exp:'벤더에게 장애 현상, 발생 시간, 관련 로그, 재현 방법, 긴급도(Priority)를 명확히 제공해야 신속한 지원이 가능합니다. 정보가 부족하면 초기 대응이 지연됩니다.'},
+  {q:'벤더사 기술 지원의 SLA 위반 시 적절한 대응은?',
+   opts:['즉시 다른 솔루션으로 교체한다','SLA 위반 사항을 문서화하고 계약에 따른 패널티 또는 보상을 요청한다','아무런 조치를 취하지 않는다','직접 소송을 제기한다','SLA 문서를 폐기한다'],ans:1,
+   exp:'SLA 위반은 계약서의 패널티 조항에 따라 서비스 크레딧이나 위약금을 청구할 수 있습니다. 위반 사항을 문서화하면 계약 갱신 협상 시에도 중요한 근거가 됩니다.'}
+]
+};
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let state = {
+  userInfo: {},
+  importance: {},
+  testQuestions: [],
+  answers: {},
+  results: {},
+  currentQIdx: 0
+};
+let radarChart = null;
+
+// ══════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function makeStepBar(current) {
+  const steps = ['정보 입력','중요도 평가','역량 시험','결과 확인'];
+  const ids = ['info','imp','test','results'];
+  const ci = ids.indexOf(current);
+  return `<div class="step-bar">${steps.map((s,i) => {
+    const cls = i < ci ? 'done' : i === ci ? 'active' : '';
+    const line = i < steps.length-1 ? `<div class="step-line" style="${i<ci?'background:#e85d00':''}"></div>` : '';
+    return `<div class="step ${cls}"><div class="step-dot">${i+1}</div><span class="step-label">${s}</span></div>${line}`;
+  }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════════════
+//  INFO
+// ══════════════════════════════════════════════════
+function submitInfo() {
+  const name = document.getElementById('inp-name').value.trim();
+  const dept = document.getElementById('inp-dept').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+  if (!name || !dept || !email) { alert('모든 항목을 입력해 주세요.'); return; }
+  state.userInfo = { name, dept, email, job: document.getElementById('inp-job').value };
+  renderImportancePage();
+  showPage('page-importance');
+}
+
+// ══════════════════════════════════════════════════
+//  IMPORTANCE
+// ══════════════════════════════════════════════════
+const LEGEND_CHIPS = `<b>1</b> 전혀 관계없음 &nbsp;<b>2</b> 거의 관계없음 &nbsp;<b>3</b> 보통 &nbsp;<b>4</b> 중요함 &nbsp;<b>5</b> 매우 중요함`;
+
+function renderImportancePage() {
+  document.getElementById('step-bar-imp').innerHTML = makeStepBar('imp');
+  let html = '';
+  TASK_STRUCTURE.forEach(cat => {
+    html += `<div class="category-block">
+      <div class="category-header">
+        <h3>${cat.cat}. ${cat.catName}</h3>
+        <div class="cat-legend">
+          <span class="cat-chip"><b>1</b> 전혀 관계없음</span>
+          <span class="cat-chip"><b>2</b> 거의 관계없음</span>
+          <span class="cat-chip"><b>3</b> 보통</span>
+          <span class="cat-chip"><b>4</b> 중요함</span>
+          <span class="cat-chip"><b>5</b> 매우 중요함</span>
+        </div>
+      </div>
+      <div class="category-body">`;
+    cat.tasks.forEach(task => {
+      const skills = SKILLS.filter(s => s.taskId === task.id);
+      html += `<div class="task-block"><div class="task-label">${task.id} · ${task.name}</div>`;
+      skills.forEach(sk => {
+        html += `<div class="skill-row">
+          <div class="skill-text">${sk.text}</div>
+          <div class="rating-group">
+            ${[1,2,3,4,5].map(v=>`<label>
+              <input type="radio" name="imp_${sk.id}" value="${v}">
+              <div class="rating-btn">${v}</div>
+            </label>`).join('')}
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  });
+  document.getElementById('importance-content').innerHTML = html;
+}
+
+function submitImportance() {
+  let missing = [];
+  SKILLS.forEach(sk => {
+    const sel = document.querySelector(`input[name="imp_${sk.id}"]:checked`);
+    if (!sel) missing.push(sk.text.substring(0, 15) + '…');
+    else state.importance[sk.id] = parseInt(sel.value);
+  });
+  if (missing.length > 0) {
+    alert(`중요도를 선택하지 않은 스킬이 ${missing.length}개 있습니다.\n모두 선택 후 진행해 주세요.`);
+    return;
+  }
+  buildTest();
+  renderTestPage();
+  showPage('page-test');
+}
+
+// ══════════════════════════════════════════════════
+//  TEST BUILDER
+// ══════════════════════════════════════════════════
+function buildTest() {
+  state.testQuestions = [];
+  let qIdx = 0;
+  SKILLS.forEach(sk => {
+    const imp = state.importance[sk.id] || 1;
+    if (imp === 1) return;
+    const pool = QB[sk.id] || [];
+    const count = imp >= 4 ? 2 : 1;
+    pool.slice(0, Math.min(count, pool.length)).forEach(q => {
+      state.testQuestions.push({ skillId: sk.id, taskId: sk.taskId, q: q.q, opts: q.opts, ans: q.ans, exp: q.exp, qIdx: qIdx++ });
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  TEST PAGE  (한 문제씩)
+// ══════════════════════════════════════════════════
+function renderTestPage() {
+  document.getElementById('step-bar-test').innerHTML = makeStepBar('test');
+  const total = state.testQuestions.length;
+  if (total === 0) {
+    document.getElementById('test-content').innerHTML = '<div class="card" style="text-align:center;color:#94a3b8;padding:40px;">모든 스킬의 중요도가 1로 설정되어 시험 문항이 없습니다.</div>';
+    document.getElementById('test-task-label').textContent = '';
+    document.getElementById('test-count').textContent = '';
+    return;
+  }
+  state.currentQIdx = 0;
+  showQuestion(0);
+}
+
+function showQuestion(idx) {
+  const total = state.testQuestions.length;
+  if (idx < 0 || idx >= total) return;
+  state.currentQIdx = idx;
+  const q = state.testQuestions[idx];
+
+  // 헤더 업데이트
+  const taskObj = TASK_STRUCTURE.flatMap(c => c.tasks).find(t => t.id === q.taskId);
+  document.getElementById('test-task-label').textContent = `과업: ${q.taskId} · ${taskObj?.name ?? ''}`;
+  const answered = Object.keys(state.answers).length;
+  document.getElementById('test-progress').style.width = (answered / total * 100) + '%';
+  document.getElementById('test-count').textContent = `${answered} / ${total} 문항 답변`;
+
+  const nums = ['①','②','③','④','⑤'];
+  const chosen = state.answers[idx];
+  const isLast = idx === total - 1;
+
+  // 답변 점표시 (전체 진행 현황)
+  const dots = state.testQuestions.map((_, i) => {
+    const a = state.answers[i];
+    const color = a !== undefined ? '#e85d00' : (i === idx ? '#1a3560' : '#d1d9e6');
+    return `<span class="q-answered-dot" style="background:${color};${i===idx?'width:12px;height:12px;':''}"></span>`;
+  }).join('');
+
+  const html = `
+    <div class="q-block">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span class="q-task-badge">${q.taskId} · ${taskObj?.name ?? ''}</span>
+        <span style="font-size:12px;color:#a0aec0;">${idx+1} / ${total}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:14px;">${dots}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="q-options" id="qopts_${idx}">
+        ${q.opts.map((opt, oi) => `
+          <div class="q-option${chosen === oi ? ' selected' : ''}" onclick="selectAnswer(${idx},${oi})">
+            <div class="opt-num" style="${chosen===oi?'background:#2563eb;color:#fff;':''}"> ${nums[oi]}</div>
+            <div class="opt-text">${opt}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="q-nav">
+      <button class="btn-prev" onclick="prevQuestion()" ${idx === 0 ? 'disabled' : ''}>← 이전</button>
+      <div class="q-nav-counter">
+        <strong>${idx+1}</strong> / ${total}
+      </div>
+      ${isLast
+        ? `<button class="btn-submit-q" onclick="submitTest()">제출 및 결과 확인 →</button>`
+        : `<button class="btn-qnext" onclick="nextQuestion()">다음 →</button>`
+      }
+    </div>`;
+  document.getElementById('test-content').innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+function prevQuestion() {
+  if (state.currentQIdx > 0) showQuestion(state.currentQIdx - 1);
+}
+
+function nextQuestion() {
+  const total = state.testQuestions.length;
+  if (state.currentQIdx < total - 1) showQuestion(state.currentQIdx + 1);
+}
+
+function selectAnswer(qIdx, optIdx) {
+  state.answers[qIdx] = optIdx;
+  // 선택 UI 즉시 반영
+  document.querySelectorAll(`#qopts_${qIdx} .q-option`).forEach((el, i) => {
+    el.classList.toggle('selected', i === optIdx);
+    el.querySelector('.opt-num').style.cssText = i === optIdx ? 'background:#2563eb;color:#fff;' : '';
+  });
+  // 500ms 후 자동 다음 문항
+  const total = state.testQuestions.length;
+  const answered = Object.keys(state.answers).length;
+  document.getElementById('test-progress').style.width = (answered / total * 100) + '%';
+  document.getElementById('test-count').textContent = `${answered} / ${total} 문항 답변`;
+  if (qIdx < total - 1) {
+    setTimeout(() => showQuestion(qIdx + 1), 500);
+  }
+}
+
+function submitTest() {
+  const total = state.testQuestions.length;
+  const answered = Object.keys(state.answers).length;
+  if (answered < total && !confirm(`아직 ${total - answered}문항이 미답변 상태입니다. 그래도 제출하시겠습니까?`)) return;
+  calculateResults();
+  renderResults();
+  showPage('page-results');
+}
+
+// ══════════════════════════════════════════════════
+//  SCORING
+// ══════════════════════════════════════════════════
+function calculateResults() {
+  const allTaskIds = TASK_STRUCTURE.flatMap(c => c.tasks.map(t => t.id));
+  state.results = {};
+  allTaskIds.forEach(taskId => {
+    const taskSkills = SKILLS.filter(s => s.taskId === taskId);
+    const impAvg = taskSkills.reduce((a, s) => a + (state.importance[s.id] || 3), 0) / taskSkills.length;
+    const scoredSkills = taskSkills.filter(s => (state.importance[s.id] || 1) >= 2);
+    if (scoredSkills.length === 0) {
+      state.results[taskId] = { impAvg: parseFloat(impAvg.toFixed(1)), scoreLevel: null };
+      return;
+    }
+    let wCorrect = 0, wTotal = 0;
+    scoredSkills.forEach(sk => {
+      const imp = state.importance[sk.id];
+      const qs = state.testQuestions.filter(q => q.skillId === sk.id);
+      if (!qs.length) return;
+      const correct = qs.filter(q => state.answers[q.qIdx] === q.ans).length;
+      wCorrect += imp * (correct / qs.length);
+      wTotal += imp;
+    });
+    const level = wTotal > 0 ? (wCorrect / wTotal) * 4 + 1 : 1;
+    state.results[taskId] = { impAvg: parseFloat(impAvg.toFixed(1)), scoreLevel: parseFloat(level.toFixed(1)) };
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  RESULTS
+// ══════════════════════════════════════════════════
+function renderResults() {
+  const u = state.userInfo;
+  document.getElementById('res-user').textContent = `${u.dept} · ${u.name} (${u.email})`;
+  document.getElementById('res-date').textContent = `진단일: ${new Date().toLocaleDateString('ko-KR')} · 직무: ${u.job}`;
+
+  const allTasks = TASK_STRUCTURE.flatMap(c => c.tasks);
+  const impData = allTasks.map(t => state.results[t.id]?.impAvg ?? 0);
+  const scoreData = allTasks.map(t => state.results[t.id]?.scoreLevel ?? 0);
+
+  if (radarChart) radarChart.destroy();
+  const ctx = document.getElementById('radar-chart').getContext('2d');
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: allTasks.map(t => [t.id, t.name]),
+      datasets: [
+        { label:'중요도', data:impData, backgroundColor:'rgba(37,99,235,0.15)', borderColor:'#2563eb', borderWidth:2.5, pointBackgroundColor:'#2563eb', pointRadius:4 },
+        { label:'역량 수준', data:scoreData, backgroundColor:'rgba(232,93,0,0.15)', borderColor:'#e85d00', borderWidth:2.5, pointBackgroundColor:'#e85d00', pointRadius:4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { r: { min:0, max:5, ticks:{ stepSize:1, font:{size:11} }, pointLabels:{ font:{size:11, weight:'bold'} } } },
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{
+        title: items => { const t = allTasks[items[0].dataIndex]; return `${t.id} · ${t.name}`; },
+        label: ctx => `${ctx.dataset.label}: ${ctx.raw}점`
+      } } }
+    }
+  });
+
+  // Detail table
+  let tbody = '';
+  allTasks.forEach(t => {
+    const r = state.results[t.id];
+    const sl = r?.scoreLevel;
+    const diff = sl !== null ? sl - r.impAvg : null;
+    const badgeCls = sl === null ? 'score-na' : sl >= 4 ? 'score-high' : sl >= 2.5 ? 'score-mid' : 'score-low';
+    const diffStr = diff !== null ? (diff >= 0 ? '+' : '') + diff.toFixed(1) : '-';
+    const diffColor = diff !== null && diff >= 0 ? 'color:#15803d' : 'color:#b91c1c';
+    tbody += `<tr><td><strong>${t.id}</strong></td><td style="text-align:left">${t.name}</td><td>${r?.impAvg ?? '-'}</td><td><span class="score-badge ${badgeCls}">${sl !== null ? sl + '점' : '해당없음'}</span></td><td style="${diffColor};font-weight:700">${diffStr}</td></tr>`;
+  });
+  document.getElementById('detail-tbody').innerHTML = tbody;
+
+  // Coverage
+  let covHtml = '<div class="coverage-card"><h4>대분류별 역량 커버리지 (중요도 대비 역량 비율)</h4>';
+  TASK_STRUCTURE.forEach(cat => {
+    const scored = cat.tasks.filter(t => state.results[t.id]?.scoreLevel !== null);
+    if (!scored.length) { covHtml += `<div class="coverage-row"><div class="cl">${cat.cat}. ${cat.catName}</div><div class="coverage-bar-bg"><div class="coverage-bar-fg" style="width:0%"></div></div><div class="cv">N/A</div></div>`; return; }
+    const avgImp = scored.reduce((a, t) => a + state.results[t.id].impAvg, 0) / scored.length;
+    const avgScore = scored.reduce((a, t) => a + state.results[t.id].scoreLevel, 0) / scored.length;
+    const pct = Math.min(100, Math.round(avgScore / avgImp * 100));
+    covHtml += `<div class="coverage-row"><div class="cl">${cat.cat}. ${cat.catName}</div><div class="coverage-bar-bg"><div class="coverage-bar-fg" style="width:${pct}%"></div></div><div class="cv">${pct}%</div></div>`;
+  });
+  document.getElementById('coverage-section').innerHTML = covHtml + '</div>';
+
+  // Strengths / Dev areas
+  const sortedTasks = allTasks.filter(t => state.results[t.id]?.scoreLevel !== null)
+    .map(t => ({ ...t, score: state.results[t.id].scoreLevel, imp: state.results[t.id].impAvg, diff: state.results[t.id].scoreLevel - state.results[t.id].impAvg }));
+  const strengths = [...sortedTasks].sort((a, b) => b.score - a.score).filter(t => t.score >= 3.5).slice(0, 4);
+  const devAreas = [...sortedTasks].sort((a, b) => a.diff - b.diff).filter(t => t.diff < 0).slice(0, 4);
+
+  document.getElementById('analysis-grid').innerHTML = `
+    <div class="analysis-card">
+      <h4 style="color:#15803d">✅ 강점 과업</h4>
+      <ul>${strengths.length ? strengths.map(t => `<li><span class="tag-str">${t.id}</span>${t.name} <span style="color:#94a3b8;font-size:12px">(${t.score}점)</span></li>`).join('') : '<li style="color:#94a3b8">해당 없음</li>'}</ul>
+    </div>
+    <div class="analysis-card">
+      <h4 style="color:#b91c1c">📈 개발 필요 과업</h4>
+      <ul>${devAreas.length ? devAreas.map(t => `<li><span class="tag-dev">${t.id}</span>${t.name} <span style="color:#94a3b8;font-size:12px">(${t.diff.toFixed(1)}점 부족)</span></li>`).join('') : '<li style="color:#94a3b8">해당 없음</li>'}</ul>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════
+//  정답/오답 노트
+// ══════════════════════════════════════════════════
+function toggleReview() {
+  const el = document.getElementById('answer-review');
+  if (el.style.display === 'none') {
+    renderAnswerReview();
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelector('.btn-review').textContent = '📝 정답/오답 노트 닫기';
+  } else {
+    el.style.display = 'none';
+    document.querySelector('.btn-review').textContent = '📝 정답/오답 노트 보기';
+  }
+}
+
+function renderAnswerReview() {
+  const qs = state.testQuestions;
+  if (!qs.length) { document.getElementById('answer-review').innerHTML = '<div class="card" style="text-align:center;color:#94a3b8;padding:32px;">출제된 문항이 없습니다.</div>'; return; }
+
+  let correct = 0, answered = 0;
+  qs.forEach(q => { const c = state.answers[q.qIdx]; if (c !== undefined) { answered++; if (c === q.ans) correct++; } });
+  const pct = answered > 0 ? Math.round(correct / answered * 100) : 0;
+
+  const byTask = {};
+  qs.forEach(q => { if (!byTask[q.taskId]) byTask[q.taskId] = []; byTask[q.taskId].push(q); });
+
+  const nums = ['①','②','③','④','⑤'];
+  let html = `<div class="ar-summary-box">
+    <div><div class="ar-big">${correct} / ${answered}</div><div class="ar-label">정답 / 응답 문항</div></div>
+    <div><div class="ar-big">${pct}%</div><div class="ar-label">정답률</div></div>
+    <div style="font-size:13px;color:#a8c0e0;line-height:1.8;">
+      ✅ 정답 ${correct}문항 &nbsp;|&nbsp; ❌ 오답 ${answered - correct}문항 ${answered < qs.length ? `&nbsp;|&nbsp; ⬜ 미답변 ${qs.length - answered}문항` : ''}
+    </div>
+  </div>`;
+
+  Object.entries(byTask).forEach(([taskId, taskQs]) => {
+    const taskObj = TASK_STRUCTURE.flatMap(c => c.tasks).find(t => t.id === taskId);
+    html += `<div class="ar-section-hd">${taskId} · ${taskObj?.name ?? ''}</div>`;
+    taskQs.forEach(q => {
+      const chosen = state.answers[q.qIdx];
+      const unanswered = chosen === undefined;
+      const isCorrect = !unanswered && chosen === q.ans;
+      const cls = unanswered ? 'ar-unanswered' : isCorrect ? 'ar-correct' : 'ar-wrong';
+      const statusText = unanswered ? '⬜ 미답변' : isCorrect ? '✅ 정답' : '❌ 오답';
+
+      const optsHtml = q.opts.map((opt, oi) => {
+        let optCls = 'ar-opt opt-neutral';
+        if (oi === q.ans) optCls = 'ar-opt opt-correct';
+        else if (!unanswered && oi === chosen) optCls = 'ar-opt opt-user-wrong';
+        const mark = oi === q.ans ? ' ← 정답' : (!unanswered && oi === chosen ? ' ← 내 답변' : '');
+        return `<div class="${optCls}">${nums[oi]} ${opt}${mark ? `<b>${mark}</b>` : ''}</div>`;
+      }).join('');
+
+      html += `<div class="ar-block ${cls}">
+        <div class="ar-status">${statusText} &nbsp;<span style="font-size:11px;font-weight:400;color:#94a3b8">문항 ${q.qIdx+1}</span></div>
+        <div class="ar-q">${q.q}</div>
+        <div class="ar-opts">${optsHtml}</div>
+        <div class="ar-exp"><b>📌 해설 :</b> ${q.exp}</div>
+      </div>`;
+    });
+  });
+
+  document.getElementById('answer-review').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+//  RESTART
+// ══════════════════════════════════════════════════
+function restartDiagnosis() {
+  state = { userInfo:{}, importance:{}, testQuestions:[], answers:{}, results:{}, currentQIdx:0 };
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+  document.getElementById('answer-review').style.display = 'none';
+  document.querySelector('.btn-review').textContent = '📝 정답/오답 노트 보기';
+  showPage('page-home');
+}
+
+// ── Init step bars ──
+document.getElementById('step-bar-info').innerHTML = makeStepBar('info');
+</script>
+</body>
+</html>
