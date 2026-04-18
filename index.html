@@ -225,10 +225,28 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 .history-modal-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1;}
 .history-modal-body{padding:24px;max-height:60vh;overflow-y:auto;}
 
+/* ── STATUS PAGE ── */
+.status-header{background:linear-gradient(135deg,#1a3560,#0d1b35);color:#fff;border-radius:16px;padding:24px 28px;margin-bottom:20px;}
+.status-header h2{font-size:20px;font-weight:700;margin-bottom:4px;}
+.status-header p{font-size:13px;color:#a8c0e0;}
+.status-chart-outer{position:relative;background:#fff;border-radius:16px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:20px;}
+.status-chart-outer h3{font-size:15px;font-weight:700;color:#1a2c4e;margin-bottom:4px;}
+.status-chart-outer .status-date{font-size:12px;color:#94a3b8;margin-bottom:20px;}
+.status-chart-inner{max-width:520px;margin:0 auto;}
+.status-blur-overlay{position:absolute;inset:0;border-radius:16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;z-index:10;}
+.status-blur-msg{background:#1a3560;color:#fff;border-radius:50px;padding:12px 28px;font-size:14px;font-weight:700;letter-spacing:.02em;}
+.status-legend{display:flex;gap:20px;justify-content:center;margin-top:14px;}
+.status-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px;}
+.btn-status-imp{background:#fff;color:#1a3560;border:2px solid #1a3560;padding:16px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;text-align:center;}
+.btn-status-imp:hover{background:#f0f4f8;}
+.btn-status-diag{background:linear-gradient(135deg,#e85d00,#ff8c3a);color:#fff;border:none;padding:16px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;text-align:center;box-shadow:0 4px 16px rgba(232,93,0,.3);}
+.btn-status-diag:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(232,93,0,.4);}
+@media(max-width:480px){.status-actions{grid-template-columns:1fr;}}
+
 /* ── PRINT ── */
 @media print{
   body{background:#fff;}
-  #page-home,#page-info,#page-importance,#page-test,#page-review{display:none!important;}
+  #page-home,#page-info,#page-status,#page-importance,#page-test,#page-review{display:none!important;}
   #page-results{display:block!important;}
   .btn-pdf,.btn-review,.btn-restart,.ar-wrap{display:none!important;}
   .page-wrap{padding:0;max-width:100%;}
@@ -279,6 +297,34 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
         <select id="inp-job"></select>
       </div>
       <button class="btn-next" onclick="submitInfo()">다음 단계 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STATUS ═══════════════ -->
+<div id="page-status" class="page">
+  <div class="page-wrap">
+    <div class="status-header">
+      <h2 id="status-title">역량 현황</h2>
+      <p id="status-sub"></p>
+    </div>
+    <div class="status-chart-outer">
+      <h3>과업별 역량 현황</h3>
+      <p class="status-date" id="status-date"></p>
+      <div class="status-chart-inner">
+        <canvas id="status-radar-chart"></canvas>
+      </div>
+      <div class="status-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div>요구 수준 (중요도)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e85d00"></div>현재 역량 (진단결과)</div>
+      </div>
+      <div class="status-blur-overlay" id="status-blur" style="display:none;">
+        <span class="status-blur-msg">역량을 진단하십시오.</span>
+      </div>
+    </div>
+    <div class="status-actions">
+      <button class="btn-status-imp" onclick="goToImportance()">📋 중요도 평가</button>
+      <button class="btn-status-diag" onclick="goToDiagnosis()">🎯 역량 진단</button>
     </div>
   </div>
 </div>
@@ -4692,8 +4738,90 @@ function submitInfo() {
   if (!name || !dept || !email || !cat) { alert('모든 항목을 입력해 주세요.'); return; }
   state.userInfo = { name, dept, email, job: document.getElementById('inp-job').value };
   loadJobData(state.userInfo.job);
+  showStatusPage();
+}
+
+let statusRadarChart = null;
+
+async function showStatusPage() {
+  showPage('page-status');
+  const { name, dept, email, job } = state.userInfo;
+  document.getElementById('status-title').textContent = '역량 현황';
+  document.getElementById('status-sub').textContent = `${dept} · ${name} · ${job}`;
+
+  const { data } = await sbClient
+    .from('SDSkills')
+    .select('result_data, saved_at')
+    .eq('email', email)
+    .eq('job', job)
+    .order('saved_at', { ascending: false })
+    .limit(1);
+
+  const record = data?.[0];
+
+  if (statusRadarChart) { statusRadarChart.destroy(); statusRadarChart = null; }
+
+  if (!record) {
+    document.getElementById('status-date').textContent = '진단 이력 없음';
+    document.getElementById('status-blur').style.display = 'flex';
+    const ctx = document.getElementById('status-radar-chart').getContext('2d');
+    const allTasks = TASK_STRUCTURE.flatMap(c => c.tasks);
+    statusRadarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: allTasks.map(t => [t.id, t.name]),
+        datasets: [
+          { label:'요구 수준', data: allTasks.map(() => 3), backgroundColor:'rgba(37,99,235,0.1)', borderColor:'#2563eb', borderWidth:2, pointRadius:3 },
+          { label:'현재 역량', data: allTasks.map(() => 0), backgroundColor:'rgba(232,93,0,0.1)', borderColor:'#e85d00', borderWidth:2, pointRadius:3 }
+        ]
+      },
+      options: { responsive:true, scales:{ r:{ min:0, max:5, ticks:{ stepSize:1, font:{size:10} }, pointLabels:{ font:{size:10, weight:'bold'} } } }, plugins:{ legend:{display:false} } }
+    });
+    return;
+  }
+
+  document.getElementById('status-blur').style.display = 'none';
+  const rd = record.result_data;
+  const savedAt = new Date(record.saved_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('status-date').textContent = `최근 진단일: ${savedAt}`;
+
+  if (rd.importance) state.importance = rd.importance;
+
+  const allTasks = TASK_STRUCTURE.flatMap(c => c.tasks);
+  const impData = allTasks.map(t => rd.results?.[t.id]?.impAvg ?? 0);
+  const scoreData = allTasks.map(t => rd.results?.[t.id]?.scoreLevel ?? 0);
+
+  const ctx = document.getElementById('status-radar-chart').getContext('2d');
+  statusRadarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: allTasks.map(t => [t.id, t.name]),
+      datasets: [
+        { label:'요구 수준', data:impData, backgroundColor:'rgba(37,99,235,0.15)', borderColor:'#2563eb', borderWidth:2.5, pointBackgroundColor:'#2563eb', pointRadius:4 },
+        { label:'현재 역량', data:scoreData, backgroundColor:'rgba(232,93,0,0.15)', borderColor:'#e85d00', borderWidth:2.5, pointBackgroundColor:'#e85d00', pointRadius:4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { r:{ min:0, max:5, ticks:{ stepSize:1, font:{size:10} }, pointLabels:{ font:{size:10, weight:'bold'} } } },
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: ${ctx.raw}` } } }
+    }
+  });
+}
+
+function goToImportance() {
   renderImportancePage();
   showPage('page-importance');
+}
+
+function goToDiagnosis() {
+  if (Object.keys(state.importance).length === 0) {
+    renderImportancePage();
+    showPage('page-importance');
+  } else {
+    buildTest();
+    showPage('page-test');
+  }
 }
 
 // ══════════════════════════════════════════════════
