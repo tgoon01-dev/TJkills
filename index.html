@@ -534,6 +534,7 @@ async function saveDiagnosisResult() {
     }
   });
   if (error) console.error('Supabase 저장 오류:', error.message);
+  else console.log('저장 완료 → email:', u.email, '/ job:', u.job);
 }
 
 // ══════════════════════════════════════════════════
@@ -4809,15 +4810,15 @@ async function showStatusPage() {
   document.getElementById('status-sub').textContent = `${dept} · ${name} · ${job}`;
   document.getElementById('status-job-title').textContent = job;
 
-  const { data } = await sbClient
+  const { data, error } = await sbClient
     .from('SDSkills')
-    .select('result_data, saved_at')
+    .select('job, result_data, saved_at')
     .eq('email', email)
-    .eq('job', job)
     .order('saved_at', { ascending: false })
-    .limit(1);
+    .limit(50);
 
-  const record = data?.[0];
+  if (error) console.error('status page 조회 오류:', error.message);
+  const record = data?.find(r => r.job === job) || null;
 
   if (statusRadarChart) { statusRadarChart.destroy(); statusRadarChart = null; }
 
