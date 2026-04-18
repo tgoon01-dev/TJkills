@@ -5012,6 +5012,18 @@ async function fetchQuestionRatings() {
   return agg;
 }
 
+function shuffleOpts(origOpts, origAns) {
+  const indices = origOpts.map((_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return {
+    opts: indices.map(i => origOpts[i]),
+    ans: indices.indexOf(origAns)
+  };
+}
+
 async function buildTest() {
   const ratings = await fetchQuestionRatings();
   state.testQuestions = [];
@@ -5039,7 +5051,8 @@ async function buildTest() {
       });
 
     candidates.slice(0, Math.min(baseCount, candidates.length)).forEach(({ q, key }) => {
-      state.testQuestions.push({ skillId: sk.id, taskId: sk.taskId, q: q.q, opts: q.opts, ans: q.ans, exp: q.exp, qIdx: qIdx++, qKey: key });
+      const { opts, ans } = shuffleOpts(q.opts, q.ans);
+      state.testQuestions.push({ skillId: sk.id, taskId: sk.taskId, q: q.q, opts, ans, exp: q.exp, qIdx: qIdx++, qKey: key });
     });
   });
 }
