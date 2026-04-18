@@ -234,14 +234,20 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 .status-chart-outer .status-date{font-size:12px;color:#94a3b8;margin-bottom:20px;}
 .status-chart-inner{max-width:520px;margin:0 auto;}
 .status-blur-overlay{position:absolute;inset:0;border-radius:16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;z-index:10;}
-.status-blur-msg{background:#1a3560;color:#fff;border-radius:50px;padding:12px 28px;font-size:14px;font-weight:700;letter-spacing:.02em;}
+.status-blur-msg{background:rgba(26,53,96,.85);color:#fff;border-radius:12px;padding:14px 32px;font-size:14px;font-weight:600;text-align:center;line-height:1.6;max-width:260px;}
 .status-legend{display:flex;gap:20px;justify-content:center;margin-top:14px;}
-.status-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px;}
-.btn-status-imp{background:#fff;color:#1a3560;border:2px solid #1a3560;padding:16px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;text-align:center;}
-.btn-status-imp:hover{background:#f0f4f8;}
-.btn-status-diag{background:linear-gradient(135deg,#e85d00,#ff8c3a);color:#fff;border:none;padding:16px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;text-align:center;box-shadow:0 4px 16px rgba(232,93,0,.3);}
-.btn-status-diag:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(232,93,0,.4);}
-@media(max-width:480px){.status-actions{grid-template-columns:1fr;}}
+.status-action-section{background:#fff;border-radius:16px;padding:20px 22px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:14px;}
+.status-action-label{font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.status-action-title{font-size:15px;font-weight:700;color:#1a2c4e;margin-bottom:14px;}
+.status-actions{display:flex;gap:10px;}
+.btn-status-imp{flex:1;background:#f0f4f8;color:#1a3560;border:none;padding:11px 0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;}
+.btn-status-imp:hover{background:#e2e8f0;}
+.btn-status-diag{flex:1;background:#1a3560;color:#fff;border:none;padding:11px 0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;}
+.btn-status-diag:hover{background:#2a4a80;}
+.status-other-selects{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.status-other-selects select{padding:9px 10px;border:1px solid #d1d9e6;border-radius:8px;font-size:13px;color:#1a2c4e;outline:none;background:#fff;width:100%;}
+.status-other-selects select:focus{border-color:#1a3560;}
+@media(max-width:480px){.status-other-selects{grid-template-columns:1fr;}}
 
 /* ── PRINT ── */
 @media print{
@@ -319,12 +325,41 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
         <div class="legend-item"><div class="legend-dot" style="background:#e85d00"></div>현재 역량 (진단결과)</div>
       </div>
       <div class="status-blur-overlay" id="status-blur" style="display:none;">
-        <span class="status-blur-msg">역량을 진단하십시오.</span>
+        <span class="status-blur-msg">역량을 진단하여<br>나의 전문성을 확인해보십시오.</span>
       </div>
     </div>
-    <div class="status-actions">
-      <button class="btn-status-imp" onclick="goToImportance()">📋 중요도 평가</button>
-      <button class="btn-status-diag" onclick="goToDiagnosis()">🎯 역량 진단</button>
+
+    <!-- 현재 직무 액션 -->
+    <div class="status-action-section">
+      <div class="status-action-label">현재 직무</div>
+      <div class="status-action-title" id="status-job-title">—</div>
+      <div class="status-actions">
+        <button class="btn-status-imp" onclick="goToImportance()">중요도 평가</button>
+        <button class="btn-status-diag" onclick="goToDiagnosis()">역량 진단</button>
+      </div>
+    </div>
+
+    <!-- 다른 직무 역량 진단 -->
+    <div class="status-action-section">
+      <div class="status-action-label">다른 직무 역량 진단</div>
+      <div class="status-other-selects">
+        <select id="other-job-cat" onchange="onOtherJobCatChange()">
+          <option value="">-- 분야 선택 --</option>
+          <option value="보안운영">보안운영</option>
+          <option value="침해대응">침해대응</option>
+          <option value="보안컨설팅">보안컨설팅</option>
+          <option value="Cloud보안">Cloud보안</option>
+          <option value="OT/ICS보안">OT/ICS보안</option>
+          <option value="사업관리">사업관리</option>
+        </select>
+        <select id="other-job-detail" disabled>
+          <option value="">-- 세부 직무 --</option>
+        </select>
+      </div>
+      <div class="status-actions">
+        <button class="btn-status-imp" onclick="goToOtherImportance()">중요도 평가</button>
+        <button class="btn-status-diag" onclick="goToOtherDiagnosis()">역량 진단</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4748,6 +4783,7 @@ async function showStatusPage() {
   const { name, dept, email, job } = state.userInfo;
   document.getElementById('status-title').textContent = '역량 현황';
   document.getElementById('status-sub').textContent = `${dept} · ${name} · ${job}`;
+  document.getElementById('status-job-title').textContent = job;
 
   const { data } = await sbClient
     .from('SDSkills')
@@ -4822,6 +4858,49 @@ function goToDiagnosis() {
     buildTest();
     showPage('page-test');
   }
+}
+
+function onOtherJobCatChange() {
+  const cat = document.getElementById('other-job-cat').value;
+  const sel = document.getElementById('other-job-detail');
+  sel.innerHTML = '<option value="">-- 세부 직무 --</option>';
+  if (!cat || !JOB_CATEGORIES[cat]) { sel.disabled = true; return; }
+  JOB_CATEGORIES[cat].forEach(j => {
+    const o = document.createElement('option');
+    o.value = j; o.textContent = j;
+    sel.appendChild(o);
+  });
+  sel.disabled = false;
+}
+
+function getOtherJob() {
+  const job = document.getElementById('other-job-detail').value;
+  if (!job) { alert('진단할 직무를 선택해 주세요.'); return null; }
+  return job;
+}
+
+function goToOtherImportance() {
+  const job = getOtherJob();
+  if (!job) return;
+  const prev = state.userInfo.job;
+  state.userInfo.job = job;
+  loadJobData(job);
+  state.importance = {};
+  renderImportancePage();
+  showPage('page-importance');
+  state.userInfo._prevJob = prev;
+}
+
+function goToOtherDiagnosis() {
+  const job = getOtherJob();
+  if (!job) return;
+  const prev = state.userInfo.job;
+  state.userInfo.job = job;
+  loadJobData(job);
+  state.importance = {};
+  renderImportancePage();
+  showPage('page-importance');
+  state.userInfo._prevJob = prev;
 }
 
 // ══════════════════════════════════════════════════
