@@ -5143,14 +5143,14 @@ function closeCompleteModal() {
   document.getElementById('complete-modal').style.display = 'none';
 }
 
-function submitTest() {
+async function submitTest() {
   const total = state.testQuestions.length;
   const answered = Object.keys(state.answers).length;
   if (answered < total && !confirm(`아직 ${total - answered}문항이 미답변 상태입니다. 그래도 제출하시겠습니까?`)) return;
   calculateResults();
   renderResults();
   showPage('page-results');
-  saveDiagnosisResult();
+  await saveDiagnosisResult();
 }
 
 // ══════════════════════════════════════════════════
@@ -5424,9 +5424,11 @@ function renderReviewPage() {
 //  RESTART
 // ══════════════════════════════════════════════════
 function restartDiagnosis() {
-  state = { userInfo:{}, importance:{}, testQuestions:[], answers:{}, results:{}, currentQIdx:0, feedback:{} };
+  const savedUserInfo = { ...state.userInfo };
+  state = { userInfo: savedUserInfo, importance:{}, testQuestions:[], answers:{}, results:{}, currentQIdx:0, feedback:{} };
   if (radarChart) { radarChart.destroy(); radarChart = null; }
-  showPage('page-home');
+  loadJobData(savedUserInfo.job);
+  showStatusPage();
 }
 
 // ══════════════════════════════════════════════════
